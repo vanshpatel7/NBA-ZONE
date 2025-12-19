@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Details | NBA-ZONE</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/game-details.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="dashboard.html" style="text-decoration: none;">
+                    <h2>NBA-ZONE</h2>
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link">Games</a>
+                <a href="my-team.html" class="nav-link">My Team</a>
+                <a href="players.html" class="nav-link">Players</a>
+                <a href="#" class="nav-link">Standings</a>
+            </div>
+            <div class="nav-user">
+                <span class="user-name" id="userName">User</span>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="game-details-container">
+        <!-- Loading State -->
+        <div class="loading-state" id="loadingState">
+            <div class="spinner-large"></div>
+            <p>Loading game details...</p>
+        </div>
+
+        <!-- Game Content (hidden until loaded) -->
+        <div class="game-content" id="gameContent" style="display: none;">
+
+            <!-- Game Header -->
+            <section class="game-header">
+                <div class="game-date-time">
+                    <span class="game-broadcast" id="gameBroadcast">Prime</span>
+                    <span class="game-datetime" id="gameDateTime">Today 8:30 PM</span>
+                </div>
+                <div class="teams-matchup">
+                    <div class="team-side away">
+                        <div class="team-logo-large" id="awayLogo">SAS</div>
+                        <div class="team-info-header">
+                            <h2 class="team-name-large" id="awayTeamName">Spurs</h2>
+                            <div class="team-record" id="awayRecord">18-7</div>
+                            <div class="team-streak" id="awayStreak">7-3 in Last 10</div>
+                        </div>
+                    </div>
+                    <div class="vs-divider">
+                        <span class="vs-text">VS</span>
+                    </div>
+                    <div class="team-side home">
+                        <div class="team-info-header">
+                            <h2 class="team-name-large" id="homeTeamName">Knicks</h2>
+                            <div class="team-record" id="homeRecord">18-7</div>
+                            <div class="team-streak" id="homeStreak">9-1 in Last 10</div>
+                        </div>
+                        <div class="team-logo-large" id="homeLogo">NYK</div>
+                    </div>
+                </div>
+                <div class="game-tabs">
+                    <button class="tab-btn active" data-tab="preview">Preview</button>
+                    <button class="tab-btn" data-tab="away" id="awayTabBtn">Spurs</button>
+                    <button class="tab-btn" data-tab="home" id="homeTabBtn">Knicks</button>
+                </div>
+            </section>
+
+            <!-- Main Grid -->
+            <div class="details-grid">
+                <!-- Left Column -->
+                <div class="details-column">
+
+                    <!-- Season Leaders -->
+                    <section class="stats-card">
+                        <div class="card-header">
+                            <span class="team-abbr" id="leaderAwayAbbr">SAS</span>
+                            <h3>Season Leaders</h3>
+                            <span class="team-abbr" id="leaderHomeAbbr">NYK</span>
+                        </div>
+                        <div class="leaders-grid" id="leadersGrid">
+                            <!-- PPG -->
+                            <div class="leader-row">
+                                <div class="leader-stat away">
+                                    <span class="stat-value" id="awayPPGValue">25.8</span>
+                                    <span class="player-name" id="awayPPGPlayer">V. Wembanyama</span>
+                                </div>
+                                <div class="stat-label">PPG</div>
+                                <div class="leader-stat home highlight">
+                                    <span class="stat-value" id="homePPGValue">28.8</span>
+                                    <span class="player-name" id="homePPGPlayer">J. Brunson</span>
+                                </div>
+                            </div>
+                            <!-- RPG -->
+                            <div class="leader-row">
+                                <div class="leader-stat away highlight">
+                                    <span class="stat-value" id="awayRPGValue">12.6</span>
+                                    <span class="player-name" id="awayRPGPlayer">V. Wembanyama</span>
+                                </div>
+                                <div class="stat-label">RPG</div>
+                                <div class="leader-stat home">
+                                    <span class="stat-value" id="homeRPGValue">11.9</span>
+                                    <span class="player-name" id="homeRPGPlayer">K. Towns</span>
+                                </div>
+                            </div>
+                            <!-- APG -->
+                            <div class="leader-row">
+                                <div class="leader-stat away highlight">
+                                    <span class="stat-value" id="awayAPGValue">6.9</span>
+                                    <span class="player-name" id="awayAPGPlayer">S. Castle</span>
+                                </div>
+                                <div class="stat-label">APG</div>
+                                <div class="leader-stat home">
+                                    <span class="stat-value" id="homeAPGValue">6.4</span>
+                                    <span class="player-name" id="homeAPGPlayer">J. Brunson</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Team Stats -->
+                    <section class="stats-card">
+                        <div class="card-header">
+                            <span class="team-abbr" id="statsAwayAbbr">SAS</span>
+                            <h3>Team Stats</h3>
+                            <span class="team-abbr" id="statsHomeAbbr">NYK</span>
+                        </div>
+                        <div class="team-stats-grid" id="teamStatsGrid">
+                            <div class="stat-row">
+                                <span class="stat-value" id="awayOffRtg">119.7</span>
+                                <span class="stat-label">Offensive Rating</span>
+                                <span class="stat-value highlight" id="homeOffRtg">121.0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-value" id="awayDefRtg">115.2</span>
+                                <span class="stat-label">Defensive Rating</span>
+                                <span class="stat-value highlight" id="homeDefRtg">112.2</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-value" id="awayNetRtg">+4.6</span>
+                                <span class="stat-label">Net Rating</span>
+                                <span class="stat-value highlight" id="homeNetRtg">+8.8</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-value" id="away3pPct">36.6</span>
+                                <span class="stat-label">3P%</span>
+                                <span class="stat-value highlight" id="home3pPct">37.8</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-value" id="away3pm">13.6</span>
+                                <span class="stat-label">3PM</span>
+                                <span class="stat-value highlight" id="home3pm">15.1</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Injuries -->
+                    <section class="stats-card">
+                        <div class="card-header">
+                            <span class="team-abbr" id="injuryAwayAbbr">SAS</span>
+                            <h3>Injuries</h3>
+                            <span class="team-abbr" id="injuryHomeAbbr">NYK</span>
+                        </div>
+                        <div class="injuries-grid" id="injuriesGrid">
+                            <div class="injury-column" id="awayInjuries">
+                                <p class="no-injuries">No reported injuries</p>
+                            </div>
+                            <div class="injury-column" id="homeInjuries">
+                                <div class="injury-item">
+                                    <span class="position">PG</span>
+                                    <span class="player">Miles McBride</span>
+                                    <span class="status out">Out (Ankle)</span>
+                                </div>
+                                <div class="injury-item">
+                                    <span class="position">SG</span>
+                                    <span class="player">Landry Shamet</span>
+                                    <span class="status out">Out (Shoulder)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right Column -->
+                <div class="details-column">
+
+                    <!-- Last 5 Games -->
+                    <section class="stats-card">
+                        <div class="card-header">
+                            <span class="team-abbr" id="last5AwayAbbr">SAS</span>
+                            <h3>Last 5</h3>
+                            <span class="team-abbr" id="last5HomeAbbr">NYK</span>
+                        </div>
+                        <div class="last5-grid" id="last5Grid">
+                            <div class="last5-column" id="awayLast5">
+                                <div class="last5-game">
+                                    <span class="game-date">Sat, Dec 13</span>
+                                    <span class="game-result win">W 111-109</span>
+                                    <span class="opponent">at OKC</span>
+                                </div>
+                                <div class="last5-game">
+                                    <span class="game-date">Wed, Dec 10</span>
+                                    <span class="game-result win">W 132-119</span>
+                                    <span class="opponent">at LAL</span>
+                                </div>
+                                <div class="last5-game">
+                                    <span class="game-date">Mon, Dec 8</span>
+                                    <span class="game-result win">W 135-132</span>
+                                    <span class="opponent">at NOP</span>
+                                </div>
+                                <div class="last5-game">
+                                    <span class="game-date">Fri, Dec 5</span>
+                                    <span class="game-result loss">L 117-130</span>
+                                    <span class="opponent">at CLE</span>
+                                </div>
+                                <div class="last5-game">
+                                    <span class="game-date">Wed, Dec 3</span>
+                                    <span class="game-result win">W 114-112</span>
+                                    <span class="opponent">at ORL</span>
+                                </div>
+                            </div>
+                            <div class="last5-column" id="homeLast5">
+                                <div class="last5-game">
+                                    <span class="game-date">Sat, Dec 13</span>
+                                    <span class="game-result win">W 132-120</span>
+                                    <span class="opponent">at ORL</span>
+                                </div>
+                                <div class="last5-game">
+                                    <span class="game-date">Tue, Dec 9</span>
+                                    <span class="game-result win">W 117-101</span>
+                                    <span class="opponent">at TOR</span>
+                                </div>
+                                <div class="last5-game">
+                                    <span class="game-date">Sun, Dec 7</span>
+                                    <span class="game-result win">W 100-106</span>
+                                    <span class="opponent">vs ORL</span>
+                                </div>
+                                <div class="last5-game">
+                                    <span class="game-date">Fri, Dec 5</span>
+                                    <span class="game-result win">W 112-146</span>
+                                    <span class="opponent">vs UTA</span>
+                                </div>
+                                <div class="last5-game">
+                                    <span class="game-date">Wed, Dec 3</span>
+                                    <span class="game-result win">W 104-119</span>
+                                    <span class="opponent">vs CHA</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Game Info -->
+                    <section class="stats-card game-info-card">
+                        <h3>Game Info</h3>
+                        <div class="info-item">
+                            <span class="info-icon">📅</span>
+                            <span class="info-text" id="gameDate">December 16, 2025</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">📺</span>
+                            <span class="info-text" id="broadcast">Prime</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-icon">🏟️</span>
+                            <span class="info-text" id="venue">T-Mobile Arena</span>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-state" id="errorState" style="display: none;">
+            <p>Failed to load game details. <a href="dashboard.html">Return to Games</a></p>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/game-details.js"></script>
+</body>
+
+</html>

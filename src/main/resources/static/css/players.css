@@ -1,0 +1,129 @@
+/* Players Page Styles */
+
+.stat-filter {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(30, 144, 255, 0.05);
+    padding: 0.5rem;
+    border-radius: 12px;
+}
+
+.filter-btn {
+    padding: 0.5rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    color: var(--text-primary);
+    background: rgba(30, 144, 255, 0.1);
+}
+
+.filter-btn.active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.players-section {
+    background: rgba(10, 14, 39, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(30, 144, 255, 0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 1rem;
+}
+
+.section-header {
+    margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.stats-table th {
+    padding: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(30, 144, 255, 0.1);
+}
+
+.stats-table td {
+    padding: 1.25rem 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+}
+
+.stats-table tr:hover {
+    background: rgba(30, 144, 255, 0.05);
+}
+
+.stats-table .rank-col {
+    color: var(--text-secondary);
+    font-weight: 700;
+    width: 60px;
+}
+
+.stats-table .player-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stats-table .player-name {
+    font-weight: 700;
+}
+
+.stats-table .stat-highlight {
+    color: var(--primary-blue);
+    font-weight: 800;
+}
+
+.stats-table .team-badge {
+    background: rgba(30, 144, 255, 0.1);
+    color: var(--primary-blue);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Sortable column indicators */
+.sortable {
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.sortable:hover {
+    color: var(--primary-blue);
+}
+
+.sortable.active {
+    color: var(--primary-blue);
+}
+
+.sortable.active::after {
+    content: ' ↓';
+    font-size: 0.8rem;
+}

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Team | NBA-ZONE</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/my-team.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="dashboard.html" style="text-decoration: none;">
+                    <h2>NBA-ZONE</h2>
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link">Games</a>
+                <a href="my-team.html" class="nav-link active">My Team</a>
+                <a href="players.html" class="nav-link">Players</a>
+                <a href="#" class="nav-link">Standings</a>
+            </div>
+            <div class="nav-user">
+                <span class="user-name" id="userName">User</span>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="my-team-container">
+
+        <!-- Team Selection View (shown when no team selected) -->
+        <section class="team-selection" id="teamSelection">
+            <div class="section-header">
+                <h1>Select Your Favorite Team</h1>
+                <p>Choose your NBA team to track their stats, games, and players</p>
+            </div>
+
+            <!-- Conference Tabs -->
+            <div class="conference-tabs">
+                <button class="conf-tab active" data-conf="all">All Teams</button>
+                <button class="conf-tab" data-conf="east">Eastern</button>
+                <button class="conf-tab" data-conf="west">Western</button>
+            </div>
+
+            <!-- Teams Grid -->
+            <div class="teams-grid" id="teamsGrid">
+                <!-- Teams will be populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Team Dashboard (shown when team is selected) -->
+        <section class="team-dashboard" id="teamDashboard" style="display: none;">
+            <div class="dashboard-header">
+                <div class="my-team-header">
+                    <div class="team-badge">
+                        <span class="team-logo-xl" id="myTeamLogo">LAL</span>
+                    </div>
+                    <div class="team-info">
+                        <h1 id="myTeamName">Los Angeles Lakers</h1>
+                        <p class="team-conf" id="myTeamConf">Western Conference • Pacific Division</p>
+                    </div>
+                </div>
+                <button class="btn-change-team" id="changeTeamBtn">Change Team</button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-dashboard-grid">
+
+                <!-- Last 5 Games -->
+                <div class="dashboard-card">
+                    <h3>Last 5 Games</h3>
+                    <div class="last-games-list" id="lastGamesList">
+                        <div class="game-row">
+                            <span class="game-date">Dec 14</span>
+                            <span class="game-result win">W 121-114</span>
+                            <span class="opponent">vs GSW</span>
+                        </div>
+                        <div class="game-row">
+                            <span class="game-date">Dec 12</span>
+                            <span class="game-result loss">L 98-105</span>
+                            <span class="opponent">at DEN</span>
+                        </div>
+                        <div class="game-row">
+                            <span class="game-date">Dec 10</span>
+                            <span class="game-result win">W 115-108</span>
+                            <span class="opponent">vs PHX</span>
+                        </div>
+                        <div class="game-row">
+                            <span class="game-date">Dec 8</span>
+                            <span class="game-result win">W 127-120</span>
+                            <span class="opponent">at SAC</span>
+                        </div>
+                        <div class="game-row">
+                            <span class="game-date">Dec 6</span>
+                            <span class="game-result win">W 110-99</span>
+                            <span class="opponent">vs POR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Leaders -->
+                <div class="dashboard-card">
+                    <h3>Team Leaders</h3>
+                    <div class="leaders-list" id="leadersList">
+                        <div class="leader-item">
+                            <span class="leader-category">Points</span>
+                            <span class="leader-name">L. James</span>
+                            <span class="leader-value">26.5 PPG</span>
+                        </div>
+                        <div class="leader-item">
+                            <span class="leader-category">Rebounds</span>
+                            <span class="leader-name">A. Davis</span>
+                            <span class="leader-value">12.1 RPG</span>
+                        </div>
+                        <div class="leader-item">
+                            <span class="leader-category">Assists</span>
+                            <span class="leader-name">L. James</span>
+                            <span class="leader-value">8.5 APG</span>
+                        </div>
+                        <div class="leader-item">
+                            <span class="leader-category">Steals</span>
+                            <span class="leader-name">A. Reaves</span>
+                            <span class="leader-value">1.4 SPG</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Roster -->
+                <div class="dashboard-card roster-card">
+                    <h3>Roster</h3>
+                    <div class="roster-table-wrapper">
+                        <table class="roster-table" id="rosterTable">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Pos</th>
+                                    <th>PPG</th>
+                                    <th>RPG</th>
+                                    <th>APG</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rosterBody">
+                                <tr>
+                                    <td>LeBron James</td>
+                                    <td>SF</td>
+                                    <td>26.5</td>
+                                    <td>7.8</td>
+                                    <td>8.5</td>
+                                </tr>
+                                <tr>
+                                    <td>Anthony Davis</td>
+                                    <td>PF</td>
+                                    <td>24.1</td>
+                                    <td>12.1</td>
+                                    <td>3.2</td>
+                                </tr>
+                                <tr>
+                                    <td>Austin Reaves</td>
+                                    <td>SG</td>
+                                    <td>16.8</td>
+                                    <td>4.2</td>
+                                    <td>5.1</td>
+                                </tr>
+                                <tr>
+                                    <td>D'Angelo Russell</td>
+                                    <td>PG</td>
+                                    <td>12.4</td>
+                                    <td>2.8</td>
+                                    <td>5.8</td>
+                                </tr>
+                                <tr>
+                                    <td>Rui Hachimura</td>
+                                    <td>PF</td>
+                                    <td>11.2</td>
+                                    <td>4.5</td>
+                                    <td>1.1</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Confirmation Modal -->
+        <div class="modal-overlay" id="confirmModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-team-logo" id="modalTeamLogo">LAL</div>
+                <h2>Set as My Team?</h2>
+                <p id="modalTeamName">Los Angeles Lakers</p>
+                <div class="modal-actions">
+                    <button class="btn-cancel" id="cancelBtn">Cancel</button>
+                    <button class="btn-confirm" id="confirmBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/my-team.js"></script>
+</body>
+
+</html>

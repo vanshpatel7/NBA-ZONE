@@ -1,0 +1,1105 @@
+// NBA-ZONE Dashboard Module
+
+// Check authentication on page load
+document.addEventListener('DOMContentLoaded', () => {
+    if (!window.AuthModule.TokenManager.isAuthenticated()) {
+        window.location.href = '/login.html';
+        return;
+    }
+
+    initializeDashboard();
+});
+
+// Initialize Dashboard
+function initializeDashboard() {
+    // Set user name
+    const userInfo = window.AuthModule.TokenManager.getUserInfo();
+    if (userInfo) {
+        document.getElementById('userName').textContent = userInfo.username;
+    }
+
+    // Logout handler
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        window.AuthModule.logout();
+    });
+
+    // Date filter handlers
+    const dateButtons = document.querySelectorAll('.date-btn');
+    dateButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            dateButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.dataset.filter;
+            loadGames(filter);
+        });
+    });
+
+    // Load initial games
+    loadGames('today');
+}
+
+// Mock NBA Games Data (replace with actual API call later)
+function getMockGames() {
+    const today = new Date();
+
+    return [
+        {
+            id: 1,
+            homeTeam: {
+                name: 'Lakers',
+                abbreviation: 'LAL',
+                logo: 'LAL',
+                score: 102,
+                record: '18-14'
+            },
+            awayTeam: {
+                name: 'Warriors',
+                abbreviation: 'GSW',
+                logo: 'GSW',
+                score: 98,
+                record: '17-16'
+            },
+            status: 'live',
+            quarter: '3rd',
+            time: '7:42',
+            stats: {
+                viewers: '12.4k',
+                spread: 'LAL -2.5'
+            }
+        },
+        {
+            id: 2,
+            homeTeam: {
+                name: 'Celtics',
+                abbreviation: 'BOS',
+                logo: 'BOS',
+                score: 87,
+                record: '26-8'
+            },
+            awayTeam: {
+                name: 'Heat',
+                abbreviation: 'MIA',
+                logo: 'MIA',
+                score: 84,
+                record: '15-14'
+            },
+            status: 'live',
+            quarter: '4th',
+            time: '2:15',
+            stats: {
+                viewers: '8.2k',
+                spread: 'BOS -5.5'
+            }
+        },
+        {
+            id: 3,
+            homeTeam: {
+                name: 'Bucks',
+                abbreviation: 'MIL',
+                logo: 'MIL',
+                score: 0,
+                record: '19-16'
+            },
+            awayTeam: {
+                name: 'Nets',
+                abbreviation: 'BKN',
+                logo: 'BKN',
+                score: 0,
+                record: '12-20'
+            },
+            status: 'scheduled',
+            time: '7:00 PM',
+            stats: {
+                spread: 'MIL -8.5'
+            }
+        },
+        {
+            id: 4,
+            homeTeam: {
+                name: 'Sixers',
+                abbreviation: 'PHI',
+                logo: 'PHI',
+                score: 0,
+                record: '14-18'
+            },
+            awayTeam: {
+                name: 'Raptors',
+                abbreviation: 'TOR',
+                logo: 'TOR',
+                score: 0,
+                record: '8-26'
+            },
+            status: 'scheduled',
+            time: '7:00 PM',
+            stats: {
+                spread: 'PHI -6.5'
+            }
+        },
+        {
+            id: 5,
+            homeTeam: {
+                name: 'Cavaliers',
+                abbreviation: 'CLE',
+                logo: 'CLE',
+                score: 0,
+                record: '30-4'
+            },
+            awayTeam: {
+                name: 'Pistons',
+                abbreviation: 'DET',
+                logo: 'DET',
+                score: 0,
+                record: '11-21'
+            },
+            status: 'scheduled',
+            time: '7:30 PM',
+            stats: {
+                spread: 'CLE -12.5'
+            }
+        },
+        {
+            id: 6,
+            homeTeam: {
+                name: 'Hawks',
+                abbreviation: 'ATL',
+                logo: 'ATL',
+                score: 0,
+                record: '16-16'
+            },
+            awayTeam: {
+                name: 'Hornets',
+                abbreviation: 'CHA',
+                logo: 'CHA',
+                score: 0,
+                record: '7-24'
+            },
+            status: 'scheduled',
+            time: '7:30 PM',
+            stats: {
+                spread: 'ATL -9.5'
+            }
+        },
+        {
+            id: 7,
+            homeTeam: {
+                name: 'Bulls',
+                abbreviation: 'CHI',
+                logo: 'CHI',
+                score: 0,
+                record: '13-19'
+            },
+            awayTeam: {
+                name: 'Wizards',
+                abbreviation: 'WAS',
+                logo: 'WAS',
+                score: 0,
+                record: '4-26'
+            },
+            status: 'scheduled',
+            time: '8:00 PM',
+            stats: {
+                spread: 'CHI -7.5'
+            }
+        },
+        {
+            id: 8,
+            homeTeam: {
+                name: 'Pacers',
+                abbreviation: 'IND',
+                logo: 'IND',
+                score: 0,
+                record: '16-18'
+            },
+            awayTeam: {
+                name: 'Magic',
+                abbreviation: 'ORL',
+                logo: 'ORL',
+                score: 0,
+                record: '19-16'
+            },
+            status: 'scheduled',
+            time: '8:00 PM',
+            stats: {
+                spread: 'ORL -2.5'
+            }
+        },
+        {
+            id: 9,
+            homeTeam: {
+                name: 'Knicks',
+                abbreviation: 'NYK',
+                logo: 'NYK',
+                score: 0,
+                record: '20-15'
+            },
+            awayTeam: {
+                name: 'Pelicans',
+                abbreviation: 'NOP',
+                logo: 'NOP',
+                score: 0,
+                record: '5-29'
+            },
+            status: 'scheduled',
+            time: '8:30 PM',
+            stats: {
+                spread: 'NYK -11.5'
+            }
+        },
+        {
+            id: 10,
+            homeTeam: {
+                name: 'Mavericks',
+                abbreviation: 'DAL',
+                logo: 'DAL',
+                score: 0,
+                record: '20-15'
+            },
+            awayTeam: {
+                name: 'Clippers',
+                abbreviation: 'LAC',
+                logo: 'LAC',
+                score: 0,
+                record: '17-15'
+            },
+            status: 'scheduled',
+            time: '8:30 PM',
+            stats: {
+                spread: 'DAL -3.5'
+            }
+        },
+        {
+            id: 11,
+            homeTeam: {
+                name: 'Rockets',
+                abbreviation: 'HOU',
+                logo: 'HOU',
+                score: 0,
+                record: '20-11'
+            },
+            awayTeam: {
+                name: 'Spurs',
+                abbreviation: 'SAS',
+                logo: 'SAS',
+                score: 0,
+                record: '15-16'
+            },
+            status: 'scheduled',
+            time: '9:00 PM',
+            stats: {
+                spread: 'HOU -5.5'
+            }
+        },
+        {
+            id: 12,
+            homeTeam: {
+                name: 'Grizzlies',
+                abbreviation: 'MEM',
+                logo: 'MEM',
+                score: 0,
+                record: '22-11'
+            },
+            awayTeam: {
+                name: 'Timberwolves',
+                abbreviation: 'MIN',
+                logo: 'MIN',
+                score: 0,
+                record: '15-16'
+            },
+            status: 'scheduled',
+            time: '9:00 PM',
+            stats: {
+                spread: 'MEM -6.5'
+            }
+        },
+        {
+            id: 13,
+            homeTeam: {
+                name: 'Thunder',
+                abbreviation: 'OKC',
+                logo: 'OKC',
+                score: 0,
+                record: '28-5'
+            },
+            awayTeam: {
+                name: 'Suns',
+                abbreviation: 'PHX',
+                logo: 'PHX',
+                score: 0,
+                record: '16-16'
+            },
+            status: 'scheduled',
+            time: '9:30 PM',
+            stats: {
+                spread: 'OKC -9.5'
+            }
+        },
+        {
+            id: 14,
+            homeTeam: {
+                name: 'Jazz',
+                abbreviation: 'UTA',
+                logo: 'UTA',
+                score: 0,
+                record: '7-24'
+            },
+            awayTeam: {
+                name: 'Nuggets',
+                abbreviation: 'DEN',
+                logo: 'DEN',
+                score: 0,
+                record: '17-13'
+            },
+            status: 'scheduled',
+            time: '10:00 PM',
+            stats: {
+                spread: 'DEN -8.5'
+            }
+        },
+        {
+            id: 15,
+            homeTeam: {
+                name: 'Blazers',
+                abbreviation: 'POR',
+                logo: 'POR',
+                score: 0,
+                record: '10-22'
+            },
+            awayTeam: {
+                name: 'Kings',
+                abbreviation: 'SAC',
+                logo: 'SAC',
+                score: 0,
+                record: '14-19'
+            },
+            status: 'scheduled',
+            time: '10:00 PM',
+            stats: {
+                spread: 'SAC -4.5'
+            }
+        },
+        {
+            id: 16,
+            homeTeam: {
+                name: 'Lakers',
+                abbreviation: 'LAL',
+                logo: 'LAL',
+                score: 115,
+                record: '18-14'
+            },
+            awayTeam: {
+                name: 'Celtics',
+                abbreviation: 'BOS',
+                logo: 'BOS',
+                score: 118,
+                record: '26-8'
+            },
+            status: 'final',
+            quarter: 'Final',
+            stats: {
+                viewers: '15.2k',
+                spread: '1.2k'
+            }
+        },
+        {
+            id: 17,
+            homeTeam: {
+                name: 'Warriors',
+                abbreviation: 'GSW',
+                logo: 'GSW',
+                score: 0,
+                record: '17-16'
+            },
+            awayTeam: {
+                name: 'Bucks',
+                abbreviation: 'MIL',
+                logo: 'MIL',
+                score: 0,
+                record: '19-16'
+            },
+            status: 'scheduled',
+            time: '10:30 PM',
+            stats: {
+                spread: 'GSW -3.5'
+            }
+        },
+        {
+            id: 18,
+            homeTeam: {
+                name: 'Heat',
+                abbreviation: 'MIA',
+                logo: 'MIA',
+                score: 0,
+                record: '15-14'
+            },
+            awayTeam: {
+                name: 'Nets',
+                abbreviation: 'BKN',
+                logo: 'BKN',
+                score: 0,
+                record: '12-20'
+            },
+            status: 'scheduled',
+            time: '7:30 PM',
+            stats: {
+                spread: 'MIA -5.5'
+            }
+        },
+        {
+            id: 19,
+            homeTeam: {
+                name: 'Sixers',
+                abbreviation: 'PHI',
+                logo: 'PHI',
+                score: 0,
+                record: '14-18'
+            },
+            awayTeam: {
+                name: 'Cavaliers',
+                abbreviation: 'CLE',
+                logo: 'CLE',
+                score: 0,
+                record: '30-4'
+            },
+            status: 'scheduled',
+            time: '7:00 PM',
+            stats: {
+                spread: 'CLE -10.5'
+            }
+        },
+        {
+            id: 20,
+            homeTeam: {
+                name: 'Raptors',
+                abbreviation: 'TOR',
+                logo: 'TOR',
+                score: 0,
+                record: '8-26'
+            },
+            awayTeam: {
+                name: 'Hawks',
+                abbreviation: 'ATL',
+                logo: 'ATL',
+                score: 0,
+                record: '16-16'
+            },
+            status: 'scheduled',
+            time: '7:30 PM',
+            stats: {
+                spread: 'ATL -6.5'
+            }
+        },
+        {
+            id: 21,
+            homeTeam: {
+                name: 'Pistons',
+                abbreviation: 'DET',
+                logo: 'DET',
+                score: 0,
+                record: '11-21'
+            },
+            awayTeam: {
+                name: 'Hornets',
+                abbreviation: 'CHA',
+                logo: 'CHA',
+                score: 0,
+                record: '7-24'
+            },
+            status: 'scheduled',
+            time: '7:00 PM',
+            stats: {
+                spread: 'DET -4.5'
+            }
+        },
+        {
+            id: 22,
+            homeTeam: {
+                name: 'Bulls',
+                abbreviation: 'CHI',
+                logo: 'CHI',
+                score: 0,
+                record: '13-19'
+            },
+            awayTeam: {
+                name: 'Pacers',
+                abbreviation: 'IND',
+                logo: 'IND',
+                score: 0,
+                record: '16-18'
+            },
+            status: 'scheduled',
+            time: '8:00 PM',
+            stats: {
+                spread: 'IND -3.5'
+            }
+        },
+        {
+            id: 23,
+            homeTeam: {
+                name: 'Wizards',
+                abbreviation: 'WAS',
+                logo: 'WAS',
+                score: 0,
+                record: '4-26'
+            },
+            awayTeam: {
+                name: 'Magic',
+                abbreviation: 'ORL',
+                logo: 'ORL',
+                score: 0,
+                record: '19-16'
+            },
+            status: 'scheduled',
+            time: '7:00 PM',
+            stats: {
+                spread: 'ORL -12.5'
+            }
+        },
+        {
+            id: 24,
+            homeTeam: {
+                name: 'Knicks',
+                abbreviation: 'NYK',
+                logo: 'NYK',
+                score: 0,
+                record: '20-15'
+            },
+            awayTeam: {
+                name: 'Mavericks',
+                abbreviation: 'DAL',
+                logo: 'DAL',
+                score: 0,
+                record: '20-15'
+            },
+            status: 'scheduled',
+            time: '7:30 PM',
+            stats: {
+                spread: 'NYK -2.5'
+            }
+        },
+        {
+            id: 25,
+            homeTeam: {
+                name: 'Pelicans',
+                abbreviation: 'NOP',
+                logo: 'NOP',
+                score: 0,
+                record: '5-29'
+            },
+            awayTeam: {
+                name: 'Clippers',
+                abbreviation: 'LAC',
+                logo: 'LAC',
+                score: 0,
+                record: '17-15'
+            },
+            status: 'scheduled',
+            time: '8:00 PM',
+            stats: {
+                spread: 'LAC -9.5'
+            }
+        },
+        {
+            id: 26,
+            homeTeam: {
+                name: 'Rockets',
+                abbreviation: 'HOU',
+                logo: 'HOU',
+                score: 0,
+                record: '20-11'
+            },
+            awayTeam: {
+                name: 'Grizzlies',
+                abbreviation: 'MEM',
+                logo: 'MEM',
+                score: 0,
+                record: '22-11'
+            },
+            status: 'scheduled',
+            time: '8:00 PM',
+            stats: {
+                spread: 'MEM -3.5'
+            }
+        },
+        {
+            id: 27,
+            homeTeam: {
+                name: 'Spurs',
+                abbreviation: 'SAS',
+                logo: 'SAS',
+                score: 0,
+                record: '15-16'
+            },
+            awayTeam: {
+                name: 'Timberwolves',
+                abbreviation: 'MIN',
+                logo: 'MIN',
+                score: 0,
+                record: '15-16'
+            },
+            status: 'scheduled',
+            time: '8:30 PM',
+            stats: {
+                spread: 'SAS -1.5'
+            }
+        },
+        {
+            id: 28,
+            homeTeam: {
+                name: 'Thunder',
+                abbreviation: 'OKC',
+                logo: 'OKC',
+                score: 0,
+                record: '28-5'
+            },
+            awayTeam: {
+                name: 'Jazz',
+                abbreviation: 'UTA',
+                logo: 'UTA',
+                score: 0,
+                record: '7-24'
+            },
+            status: 'scheduled',
+            time: '8:00 PM',
+            stats: {
+                spread: 'OKC -15.5'
+            }
+        },
+        {
+            id: 29,
+            homeTeam: {
+                name: 'Suns',
+                abbreviation: 'PHX',
+                logo: 'PHX',
+                score: 0,
+                record: '16-16'
+            },
+            awayTeam: {
+                name: 'Nuggets',
+                abbreviation: 'DEN',
+                logo: 'DEN',
+                score: 0,
+                record: '17-13'
+            },
+            status: 'scheduled',
+            time: '9:00 PM',
+            stats: {
+                spread: 'DEN -4.5'
+            }
+        },
+        {
+            id: 30,
+            homeTeam: {
+                name: 'Blazers',
+                abbreviation: 'POR',
+                logo: 'POR',
+                score: 0,
+                record: '10-22'
+            },
+            awayTeam: {
+                name: 'Lakers',
+                abbreviation: 'LAL',
+                logo: 'LAL',
+                score: 0,
+                record: '18-14'
+            },
+            status: 'scheduled',
+            time: '10:00 PM',
+            stats: {
+                spread: 'LAL -6.5'
+            }
+        },
+        {
+            id: 31,
+            homeTeam: {
+                name: 'Kings',
+                abbreviation: 'SAC',
+                logo: 'SAC',
+                score: 0,
+                record: '14-19'
+            },
+            awayTeam: {
+                name: 'Warriors',
+                abbreviation: 'GSW',
+                logo: 'GSW',
+                score: 0,
+                record: '17-16'
+            },
+            status: 'scheduled',
+            time: '10:00 PM',
+            stats: {
+                spread: 'GSW -3.5'
+            }
+        },
+        {
+            id: 32,
+            homeTeam: {
+                name: 'Celtics',
+                abbreviation: 'BOS',
+                logo: 'BOS',
+                score: 0,
+                record: '26-8'
+            },
+            awayTeam: {
+                name: 'Heat',
+                abbreviation: 'MIA',
+                logo: 'MIA',
+                score: 0,
+                record: '15-14'
+            },
+            status: 'scheduled',
+            time: '7:30 PM',
+            stats: {
+                spread: 'BOS -8.5'
+            }
+        },
+        {
+            id: 33,
+            homeTeam: {
+                name: 'Bucks',
+                abbreviation: 'MIL',
+                logo: 'MIL',
+                score: 0,
+                record: '19-16'
+            },
+            awayTeam: {
+                name: 'Sixers',
+                abbreviation: 'PHI',
+                logo: 'PHI',
+                score: 0,
+                record: '14-18'
+            },
+            status: 'scheduled',
+            time: '8:00 PM',
+            stats: {
+                spread: 'MIL -7.5'
+            }
+        },
+        {
+            id: 34,
+            homeTeam: {
+                name: 'Nets',
+                abbreviation: 'BKN',
+                logo: 'BKN',
+                score: 0,
+                record: '12-20'
+            },
+            awayTeam: {
+                name: 'Cavaliers',
+                abbreviation: 'CLE',
+                logo: 'CLE',
+                score: 0,
+                record: '30-4'
+            },
+            status: 'scheduled',
+            time: '7:30 PM',
+            stats: {
+                spread: 'CLE -11.5'
+            }
+        },
+        {
+            id: 35,
+            homeTeam: {
+                name: 'Raptors',
+                abbreviation: 'TOR',
+                logo: 'TOR',
+                score: 0,
+                record: '8-26'
+            },
+            awayTeam: {
+                name: 'Pistons',
+                abbreviation: 'DET',
+                logo: 'DET',
+                score: 0,
+                record: '11-21'
+            },
+            status: 'scheduled',
+            time: '7:00 PM',
+            stats: {
+                spread: 'DET -3.5'
+            }
+        },
+        {
+            id: 36,
+            homeTeam: {
+                name: 'Hawks',
+                abbreviation: 'ATL',
+                logo: 'ATL',
+                score: 0,
+                record: '16-16'
+            },
+            awayTeam: {
+                name: 'Bulls',
+                abbreviation: 'CHI',
+                logo: 'CHI',
+                score: 0,
+                record: '13-19'
+            },
+            status: 'scheduled',
+            time: '7:30 PM',
+            stats: {
+                spread: 'ATL -4.5'
+            }
+        }
+    ];
+}
+
+// Load and display games from live API
+let refreshInterval = null;
+let currentFilter = 'today';
+
+async function loadGames(filter = 'today') {
+    currentFilter = filter;
+    const loadingState = document.getElementById('loadingState');
+    const gamesGrid = document.getElementById('gamesGrid');
+    const emptyState = document.getElementById('emptyState');
+
+    // Show loading
+    loadingState.style.display = 'flex';
+    gamesGrid.style.display = 'none';
+    emptyState.style.display = 'none';
+
+    try {
+        // Build API URL
+        let url = '/api/games';
+        if (filter === 'week') {
+            url += '?filter=week';
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to fetch games');
+        }
+
+        const games = data.games || [];
+
+        if (games.length === 0) {
+            loadingState.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        // Transform API response to match our card format
+        const transformedGames = games.map(game => transformGameData(game));
+
+        // Render games - grouped by date for week view
+        if (filter === 'week' || filter === 'all') {
+            gamesGrid.innerHTML = renderGamesByDate(transformedGames);
+        } else {
+            gamesGrid.innerHTML = transformedGames.map(game => createGameCard(game)).join('');
+        }
+
+        loadingState.style.display = 'none';
+        gamesGrid.style.display = filter === 'week' || filter === 'all' ? 'block' : 'grid';
+
+        // Set up auto-refresh for live games
+        setupAutoRefresh(filter);
+
+    } catch (error) {
+        console.error('Error loading games:', error);
+        loadingState.style.display = 'none';
+        emptyState.innerHTML = '<p>Error loading games. Please try again.</p>';
+        emptyState.style.display = 'block';
+    }
+}
+
+// Group games by date and render with date headers
+function renderGamesByDate(games) {
+    // Group games by date
+    const gamesByDate = {};
+
+    games.forEach(game => {
+        const dateKey = game.dateStr || 'Unknown';
+        if (!gamesByDate[dateKey]) {
+            gamesByDate[dateKey] = [];
+        }
+        gamesByDate[dateKey].push(game);
+    });
+
+    // Sort dates
+    const sortedDates = Object.keys(gamesByDate).sort((a, b) => {
+        return new Date(a) - new Date(b);
+    });
+
+    // Render each date section
+    let html = '';
+    sortedDates.forEach(dateStr => {
+        const dateGames = gamesByDate[dateStr];
+        const formattedDate = formatDateHeader(dateStr);
+
+        html += `
+            <div class="date-section">
+                <div class="date-header">
+                    <span class="date-day">${formattedDate.day}</span>
+                    <span class="date-full">${formattedDate.full}</span>
+                </div>
+                <div class="date-games-grid">
+                    ${dateGames.map(game => createGameCard(game)).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    return html;
+}
+
+// Format date for header display
+function formatDateHeader(dateStr) {
+    const date = new Date(dateStr + 'T12:00:00'); // Add time to avoid timezone issues
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    let dayName = days[date.getDay()];
+
+    // Check if today or tomorrow
+    if (date.toDateString() === today.toDateString()) {
+        dayName = 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+        dayName = 'Tomorrow';
+    }
+
+    return {
+        day: dayName,
+        full: `${months[date.getMonth()]} ${date.getDate()}`
+    };
+}
+
+// Transform API game data to match our card format
+function transformGameData(apiGame) {
+    const status = apiGame.status?.toLowerCase() || 'scheduled';
+    const isLive = status.includes('q') || status.includes('1st') || status.includes('2nd') ||
+        status.includes('3rd') || status.includes('4th') || status.includes('ot') ||
+        status.includes('half');
+    const isFinal = status === 'final';
+
+    // Parse time from datetime
+    let displayTime = apiGame.time || '';
+    if (apiGame.datetime && !isLive && !isFinal) {
+        const gameDate = new Date(apiGame.datetime);
+        displayTime = gameDate.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+
+    return {
+        id: apiGame.id,
+        dateStr: apiGame.date || '',
+        homeTeam: {
+            name: apiGame.home_team?.name || apiGame.homeTeam?.name || 'TBD',
+            abbreviation: apiGame.home_team?.abbreviation || apiGame.homeTeam?.abbreviation || '???',
+            logo: apiGame.home_team?.abbreviation || apiGame.homeTeam?.abbreviation || '???',
+            score: apiGame.home_team_score || apiGame.homeTeamScore || 0,
+            record: ''
+        },
+        awayTeam: {
+            name: apiGame.visitor_team?.name || apiGame.visitorTeam?.name || 'TBD',
+            abbreviation: apiGame.visitor_team?.abbreviation || apiGame.visitorTeam?.abbreviation || '???',
+            logo: apiGame.visitor_team?.abbreviation || apiGame.visitorTeam?.abbreviation || '???',
+            score: apiGame.visitor_team_score || apiGame.visitorTeamScore || 0,
+            record: ''
+        },
+        status: isLive ? 'live' : (isFinal ? 'final' : 'scheduled'),
+        quarter: isLive ? apiGame.status : (isFinal ? 'Final' : ''),
+        time: displayTime,
+        postseason: apiGame.postseason || false,
+        stats: null
+    };
+}
+
+// Setup auto-refresh for live updates
+function setupAutoRefresh(filter) {
+    // Clear existing interval
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+
+    // Refresh every 30 seconds
+    refreshInterval = setInterval(() => {
+        console.log('Auto-refreshing games...');
+        loadGames(filter);
+    }, 30000);
+}
+
+// Create game card HTML
+function createGameCard(game) {
+    const isLive = game.status === 'live';
+    const isFinal = game.status === 'final';
+    const isScheduled = game.status === 'scheduled';
+
+    const awayWinner = isFinal && game.awayTeam.score > game.homeTeam.score;
+    const homeWinner = isFinal && game.homeTeam.score > game.awayTeam.score;
+
+    return `
+        <div class="game-card" data-game-id="${game.id}">
+            <div class="game-status">
+                ${isLive ? `
+                    <span class="game-live">● LIVE</span>
+                    <span class="game-quarter">${game.quarter} ${game.time}</span>
+                ` : isFinal ? `
+                    <span class="game-final">${game.quarter}</span>
+                ` : `
+                    <span class="game-time">${game.time}</span>
+                `}
+            </div>
+            
+            <div class="game-teams">
+                <div class="team ${awayWinner ? 'winner' : ''}">
+                    <div class="team-info">
+                        <div class="team-logo">${game.awayTeam.logo}</div>
+                        <div class="team-details">
+                            <div class="team-name">${game.awayTeam.name}</div>
+                            <div class="team-record">${game.awayTeam.record}</div>
+                        </div>
+                    </div>
+                    ${!isScheduled ? `<div class="team-score">${game.awayTeam.score}</div>` : ''}
+                </div>
+                
+                <div class="team ${homeWinner ? 'winner' : ''}">
+                    <div class="team-info">
+                        <div class="team-logo">${game.homeTeam.logo}</div>
+                        <div class="team-details">
+                            <div class="team-name">${game.homeTeam.name}</div>
+                            <div class="team-record">${game.homeTeam.record}</div>
+                        </div>
+                    </div>
+                    ${!isScheduled ? `<div class="team-score">${game.homeTeam.score}</div>` : ''}
+                </div>
+            </div>
+            
+            ${game.stats ? `
+                <div class="game-stats">
+                    ${game.stats.viewers ? `
+                        <div class="stat-item">
+                            <span class="stat-icon">👁️</span>
+                            <span class="stat-value">${game.stats.viewers}</span>
+                        </div>
+                    ` : ''}
+                    ${game.stats.spread ? `
+                        <div class="stat-item">
+                            <span class="stat-icon">📊</span>
+                            <span class="stat-label">${game.stats.spread}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Add click handlers to game cards
+document.addEventListener('click', (e) => {
+    const gameCard = e.target.closest('.game-card');
+    if (gameCard) {
+        const gameId = gameCard.dataset.gameId;
+        console.log('Game clicked:', gameId);
+        // Navigate to game details page
+        window.location.href = `/game-details.html?id=${gameId}`;
+    }
+});
