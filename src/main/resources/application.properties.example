@@ -1,0 +1,28 @@
+# NBA-ZONE Application Properties Template
+# Copy this file to application.properties and fill in your values
+
+# ============================================
+# DATABASE CONFIGURATION
+# ============================================
+spring.datasource.url=jdbc:postgresql://localhost:5432/nba_stats
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# ============================================
+# JPA / HIBERNATE CONFIGURATION
+# ============================================
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+
+# ============================================
+# JWT CONFIGURATION
+# ============================================
+jwt.secret=YOUR_JWT_SECRET_KEY_HERE_MAKE_IT_LONG_AND_SECURE
+jwt.expiration=86400000
+
+# ============================================
+# SERVER CONFIGURATION
+# ============================================
+server.port=8080
