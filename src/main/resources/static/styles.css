@@ -16,7 +16,7 @@
     --text-secondary: #b0b8c9;
     --gradient-start: #1e3a8a;
     --gradient-end: #0a0e27;
-    
+
     /* Spacing */
     --spacing-xs: 0.5rem;
     --spacing-sm: 1rem;
@@ -50,8 +50,23 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--bg-dark) 50%, var(--bg-darker) 100%);
+    background-image: url('images/anthony-edwards-poster-dunk-rrt4z1l90fpmxzoq.gif');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
     z-index: 0;
+}
+
+/* Dark overlay to ensure text readability */
+.background-gradient::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 14, 39, 0.6);
+    z-index: 1;
 }
 
 /* Animated Circles */
@@ -60,7 +75,7 @@ body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    z-index: 1;
+    z-index: 2;
 }
 
 .circle {
@@ -96,10 +111,13 @@ body {
 }
 
 @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translate(0, 0) scale(1);
         opacity: 0.3;
     }
+
     50% {
         transform: translate(50px, 50px) scale(1.1);
         opacity: 0.5;
@@ -117,26 +135,29 @@ body {
 
 /* Logo Container */
 .logo-container {
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
     animation: fadeInDown 1s ease-out;
 }
 
 .nba-logo {
-    width: 150px;
+    width: 120px;
     height: auto;
-    filter: drop-shadow(0 10px 30px rgba(30, 144, 255, 0.4));
+    filter: drop-shadow(0 8px 20px rgba(30, 144, 255, 0.4));
     transition: transform 0.3s ease;
     animation: pulse 2s infinite ease-in-out;
 }
 
 .nba-logo:hover {
-    transform: scale(1.1) rotate(5deg);
+    transform: scale(1.05);
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.05);
     }
@@ -149,16 +170,14 @@ body {
 }
 
 .title-text {
-    font-size: clamp(3rem, 10vw, 7rem);
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.02em;
-    text-shadow: 0 0 80px rgba(30, 144, 255, 0.5);
+    font-family: 'Jersey 25', sans-serif;
+    font-size: clamp(4rem, 10vw, 8rem);
+    font-weight: 400;
+    color: var(--primary-blue);
+    text-shadow: 0 0 40px rgba(30, 144, 255, 0.6);
     display: inline-block;
     position: relative;
+    letter-spacing: 0.05em;
 }
 
 .title-text::after {
@@ -175,9 +194,10 @@ body {
 
 /* Tagline */
 .tagline {
-    font-size: clamp(1rem, 3vw, 1.5rem);
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(0.9rem, 2.5vw, 1.2rem);
     color: var(--text-secondary);
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
     font-weight: 400;
     letter-spacing: 0.05em;
     animation: fadeInUp 1s ease-out 0.5s both;
@@ -189,19 +209,19 @@ body {
     gap: var(--spacing-sm);
     justify-content: center;
     flex-wrap: wrap;
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
     animation: fadeInUp 1s ease-out 0.7s both;
 }
 
 .btn {
-    padding: 1rem 2.5rem;
-    font-size: 1.1rem;
-    font-weight: 600;
+    padding: 0.85rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 400;
     border: none;
-    border-radius: 50px;
+    border-radius: 5px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Jersey 25', sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -241,12 +261,12 @@ body {
 
 .stat-item {
     text-align: center;
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
     background: rgba(30, 144, 255, 0.05);
     border-radius: 20px;
     border: 1px solid rgba(30, 144, 255, 0.2);
     backdrop-filter: blur(10px);
-    min-width: 150px;
+    min-width: 140px;
     transition: all 0.3s ease;
 }
 
@@ -258,63 +278,21 @@ body {
 }
 
 .stat-number {
-    font-size: 2.5rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-family: 'Jersey 25', sans-serif;
+    font-size: 3rem;
+    font-weight: 400;
+    color: var(--primary-blue);
+    text-shadow: 0 0 20px rgba(30, 144, 255, 0.4);
     margin-bottom: var(--spacing-xs);
 }
 
 .stat-label {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
 
-/* Scroll Indicator */
-.scroll-indicator {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    animation: fadeIn 1s ease-out 1.5s both;
-}
-
-.scroll-arrow {
-    width: 30px;
-    height: 50px;
-    border: 2px solid var(--primary-blue);
-    border-radius: 25px;
-    position: relative;
-}
-
-.scroll-arrow::before {
-    content: '';
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    background: var(--primary-blue);
-    border-radius: 50%;
-    animation: scroll 2s infinite;
-}
-
-@keyframes scroll {
-    0% {
-        top: 10px;
-        opacity: 1;
-    }
-    100% {
-        top: 30px;
-        opacity: 0;
-    }
-}
 
 /* Animations */
 @keyframes fadeInDown {
@@ -322,6 +300,7 @@ body {
         opacity: 0;
         transform: translateY(-30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -333,6 +312,7 @@ body {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -343,6 +323,7 @@ body {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -353,25 +334,25 @@ body {
     .nba-logo {
         width: 100px;
     }
-    
+
     .stats-preview {
         gap: var(--spacing-sm);
     }
-    
+
     .stat-item {
         min-width: 120px;
         padding: var(--spacing-sm);
     }
-    
+
     .stat-number {
         font-size: 2rem;
     }
-    
+
     .cta-buttons {
         flex-direction: column;
         align-items: center;
     }
-    
+
     .btn {
         width: 100%;
         max-width: 300px;

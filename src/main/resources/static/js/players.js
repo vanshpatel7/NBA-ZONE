@@ -1,17 +1,18 @@
-// Player Stats Finder JavaScript
+// Player Stats Finder JavaScript - Using static JSON from nba_api
 
 document.addEventListener('DOMContentLoaded', function () {
     const playersTableBody = document.getElementById('playersTableBody');
     const loadingState = document.getElementById('loadingState');
     const emptyState = document.getElementById('emptyState');
     const filterButtons = document.querySelectorAll('.filter-btn');
-
     const playersTitle = document.getElementById('playersTitle');
+
+    let allPlayers = []; // Store all players for client-side filtering/sorting
     let currentStat = 'pts';
     let currentLimit = 25;
 
     // Initial fetch
-    fetchTopPlayers(currentStat, currentLimit);
+    fetchAllPlayers();
 
     // Filter button handlers (Limits)
     filterButtons.forEach(btn => {
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
             else playersTitle.innerText = 'All Players';
 
             currentLimit = limit;
-            fetchTopPlayers(currentStat, currentLimit);
+            displayPlayers();
         });
     });
 
@@ -44,23 +45,38 @@ document.addEventListener('DOMContentLoaded', function () {
             th.classList.add('active');
 
             currentStat = stat;
-            fetchTopPlayers(currentStat, currentLimit);
+            displayPlayers();
         });
     });
 
-    async function fetchTopPlayers(stat, limit) {
+    async function fetchAllPlayers() {
         showLoading();
         try {
-            const limitParam = limit > 0 ? `&limit=${limit}` : '';
-            const response = await fetch(`/api/v1/player/top?category=${stat}${limitParam}`);
+            const response = await fetch('/data/player_stats.json');
             if (!response.ok) throw new Error('Failed to fetch players');
 
-            const players = await response.json();
-            renderPlayers(players, stat);
+            const data = await response.json();
+            allPlayers = data.players || [];
+            displayPlayers();
         } catch (error) {
             console.error('Error fetching players:', error);
             showEmpty();
         }
+    }
+
+    function displayPlayers() {
+        // Sort players by current stat
+        const sortedPlayers = [...allPlayers].sort((a, b) => {
+            const valA = a[currentStat] || 0;
+            const valB = b[currentStat] || 0;
+            return valB - valA; // Descending order
+        });
+
+        // Apply limit
+        const limit = currentLimit > 0 ? currentLimit : sortedPlayers.length;
+        const displayedPlayers = sortedPlayers.slice(0, limit);
+
+        renderPlayers(displayedPlayers, currentStat);
     }
 
     function renderPlayers(players, activeStat) {
@@ -76,6 +92,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         players.forEach((player, index) => {
             const row = document.createElement('tr');
+            row.style.cursor = 'pointer';
+
+            // Add click handler to navigate to player profile
+            row.addEventListener('click', () => {
+                if (player.id) {
+                    window.location.href = `player-profile.html?id=${player.id}`;
+                }
+            });
 
             row.innerHTML = `
                 <td class="rank-col">#${index + 1}</td>

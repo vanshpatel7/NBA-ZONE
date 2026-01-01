@@ -1,0 +1,307 @@
+{
+  "east": [
+    {
+      "id": 1610612739,
+      "name": "Cavaliers",
+      "fullName": "Cleveland Cavaliers",
+      "abbreviation": "CAV",
+      "wins": 64,
+      "losses": 18,
+      "last10": "6-4",
+      "streak": "L 1"
+    },
+    {
+      "id": 1610612738,
+      "name": "Celtics",
+      "fullName": "Boston Celtics",
+      "abbreviation": "CEL",
+      "wins": 61,
+      "losses": 21,
+      "last10": "8-2",
+      "streak": "W 2"
+    },
+    {
+      "id": 1610612752,
+      "name": "Knicks",
+      "fullName": "New York Knicks",
+      "abbreviation": "KNI",
+      "wins": 51,
+      "losses": 31,
+      "last10": "6-4",
+      "streak": "W 1"
+    },
+    {
+      "id": 1610612754,
+      "name": "Pacers",
+      "fullName": "Indiana Pacers",
+      "abbreviation": "PAC",
+      "wins": 50,
+      "losses": 32,
+      "last10": "8-2",
+      "streak": "W 1"
+    },
+    {
+      "id": 1610612749,
+      "name": "Bucks",
+      "fullName": "Milwaukee Bucks",
+      "abbreviation": "BUC",
+      "wins": 48,
+      "losses": 34,
+      "last10": "8-2",
+      "streak": "W 8"
+    },
+    {
+      "id": 1610612765,
+      "name": "Pistons",
+      "fullName": "Detroit Pistons",
+      "abbreviation": "PIS",
+      "wins": 44,
+      "losses": 38,
+      "last10": "4-6",
+      "streak": "L 2"
+    },
+    {
+      "id": 1610612753,
+      "name": "Magic",
+      "fullName": "Orlando Magic",
+      "abbreviation": "MAG",
+      "wins": 41,
+      "losses": 41,
+      "last10": "7-3",
+      "streak": "L 1"
+    },
+    {
+      "id": 1610612737,
+      "name": "Hawks",
+      "fullName": "Atlanta Hawks",
+      "abbreviation": "HAW",
+      "wins": 40,
+      "losses": 42,
+      "last10": "5-5",
+      "streak": "W 3"
+    },
+    {
+      "id": 1610612741,
+      "name": "Bulls",
+      "fullName": "Chicago Bulls",
+      "abbreviation": "BUL",
+      "wins": 39,
+      "losses": 43,
+      "last10": "7-3",
+      "streak": "W 3"
+    },
+    {
+      "id": 1610612748,
+      "name": "Heat",
+      "fullName": "Miami Heat",
+      "abbreviation": "HEA",
+      "wins": 37,
+      "losses": 45,
+      "last10": "6-4",
+      "streak": "L 1"
+    },
+    {
+      "id": 1610612761,
+      "name": "Raptors",
+      "fullName": "Toronto Raptors",
+      "abbreviation": "RAP",
+      "wins": 30,
+      "losses": 52,
+      "last10": "5-5",
+      "streak": "L 2"
+    },
+    {
+      "id": 1610612751,
+      "name": "Nets",
+      "fullName": "Brooklyn Nets",
+      "abbreviation": "NET",
+      "wins": 26,
+      "losses": 56,
+      "last10": "3-7",
+      "streak": "L 3"
+    },
+    {
+      "id": 1610612755,
+      "name": "76ers",
+      "fullName": "Philadelphia 76ers",
+      "abbreviation": "76E",
+      "wins": 24,
+      "losses": 58,
+      "last10": "1-9",
+      "streak": "L 2"
+    },
+    {
+      "id": 1610612766,
+      "name": "Hornets",
+      "fullName": "Charlotte Hornets",
+      "abbreviation": "HOR",
+      "wins": 19,
+      "losses": 63,
+      "last10": "1-9",
+      "streak": "L 7"
+    },
+    {
+      "id": 1610612764,
+      "name": "Wizards",
+      "fullName": "Washington Wizards",
+      "abbreviation": "WIZ",
+      "wins": 18,
+      "losses": 64,
+      "last10": "2-8",
+      "streak": "W 1"
+    }
+  ],
+  "west": [
+    {
+      "id": 1610612760,
+      "name": "Thunder",
+      "fullName": "Oklahoma City Thunder",
+      "abbreviation": "THU",
+      "wins": 68,
+      "losses": 14,
+      "last10": "8-2",
+      "streak": "W 4"
+    },
+    {
+      "id": 1610612745,
+      "name": "Rockets",
+      "fullName": "Houston Rockets",
+      "abbreviation": "ROC",
+      "wins": 52,
+      "losses": 30,
+      "last10": "6-4",
+      "streak": "L 3"
+    },
+    {
+      "id": 1610612747,
+      "name": "Lakers",
+      "fullName": "Los Angeles Lakers",
+      "abbreviation": "LAK",
+      "wins": 50,
+      "losses": 32,
+      "last10": "6-4",
+      "streak": "L 1"
+    },
+    {
+      "id": 1610612743,
+      "name": "Nuggets",
+      "fullName": "Denver Nuggets",
+      "abbreviation": "NUG",
+      "wins": 50,
+      "losses": 32,
+      "last10": "5-5",
+      "streak": "W 3"
+    },
+    {
+      "id": 1610612746,
+      "name": "Clippers",
+      "fullName": "LA Clippers",
+      "abbreviation": "CLI",
+      "wins": 50,
+      "losses": 32,
+      "last10": "9-1",
+      "streak": "W 8"
+    },
+    {
+      "id": 1610612750,
+      "name": "Timberwolves",
+      "fullName": "Minnesota Timberwolves",
+      "abbreviation": "TIM",
+      "wins": 49,
+      "losses": 33,
+      "last10": "8-2",
+      "streak": "W 3"
+    },
+    {
+      "id": 1610612744,
+      "name": "Warriors",
+      "fullName": "Golden State Warriors",
+      "abbreviation": "WAR",
+      "wins": 48,
+      "losses": 34,
+      "last10": "7-3",
+      "streak": "L 1"
+    },
+    {
+      "id": 1610612763,
+      "name": "Grizzlies",
+      "fullName": "Memphis Grizzlies",
+      "abbreviation": "GRI",
+      "wins": 48,
+      "losses": 34,
+      "last10": "4-6",
+      "streak": "W 1"
+    },
+    {
+      "id": 1610612758,
+      "name": "Kings",
+      "fullName": "Sacramento Kings",
+      "abbreviation": "KIN",
+      "wins": 40,
+      "losses": 42,
+      "last10": "5-5",
+      "streak": "W 1"
+    },
+    {
+      "id": 1610612742,
+      "name": "Mavericks",
+      "fullName": "Dallas Mavericks",
+      "abbreviation": "MAV",
+      "wins": 39,
+      "losses": 43,
+      "last10": "4-6",
+      "streak": "L 1"
+    },
+    {
+      "id": 1610612756,
+      "name": "Suns",
+      "fullName": "Phoenix Suns",
+      "abbreviation": "SUN",
+      "wins": 36,
+      "losses": 46,
+      "last10": "1-9",
+      "streak": "L 1"
+    },
+    {
+      "id": 1610612757,
+      "name": "Trail Blazers",
+      "fullName": "Portland Trail Blazers",
+      "abbreviation": "TRA",
+      "wins": 36,
+      "losses": 46,
+      "last10": "4-6",
+      "streak": "W 1"
+    },
+    {
+      "id": 1610612759,
+      "name": "Spurs",
+      "fullName": "San Antonio Spurs",
+      "abbreviation": "SPU",
+      "wins": 34,
+      "losses": 48,
+      "last10": "3-7",
+      "streak": "W 1"
+    },
+    {
+      "id": 1610612740,
+      "name": "Pelicans",
+      "fullName": "New Orleans Pelicans",
+      "abbreviation": "PEL",
+      "wins": 21,
+      "losses": 61,
+      "last10": "2-8",
+      "streak": "L 7"
+    },
+    {
+      "id": 1610612762,
+      "name": "Jazz",
+      "fullName": "Utah Jazz",
+      "abbreviation": "JAZ",
+      "wins": 17,
+      "losses": 65,
+      "last10": "1-9",
+      "streak": "L 2"
+    }
+  ],
+  "lastUpdated": "2026-01-01"
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team | NBA-ZONE</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/team-page.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="dashboard.html" style="text-decoration: none;">
+                    <h2>NBA-ZONE</h2>
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link">Games</a>
+                <a href="my-team.html" class="nav-link">My Team</a>
+                <a href="players.html" class="nav-link">Players</a>
+                <a href="standings.html" class="nav-link">Standings</a>
+            </div>
+            <div class="nav-user">
+                <span class="user-name" id="userName">User</span>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <!-- Loading State -->
+        <div class="loading-state" id="loadingState">
+            <div class="spinner-large"></div>
+            <p>Loading team data...</p>
+        </div>
+
+        <!-- Team Content -->
+        <div class="team-content" id="teamContent" style="display: none;">
+            <!-- Team Header -->
+            <div class="team-header">
+                <div class="team-info">
+                    <div class="team-logo-large" id="teamLogo">BOS</div>
+                    <div class="team-details">
+                        <h1 class="team-name" id="teamName">Boston Celtics</h1>
+                        <div class="team-meta">
+                            <span id="teamConference">Eastern Conference</span> •
+                            <span id="teamDivision">Atlantic Division</span>
+                        </div>
+                        <div class="team-record">
+                            <span class="record" id="teamRecord">23-9</span>
+                            <span class="standing" id="teamStanding">2nd in East</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="team-actions">
+                    <button class="btn-set-team" id="setMyTeamBtn">Set as My Team</button>
+                    <button class="btn-back" onclick="history.back()">← Back</button>
+                </div>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="team-grid">
+                <!-- Recent Games -->
+                <div class="team-card">
+                    <h3>Recent Games</h3>
+                    <div class="games-list" id="recentGamesList">
+                        <!-- Games will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Team Stats -->
+                <div class="team-card">
+                    <h3>Team Stats</h3>
+                    <div class="stats-list" id="teamStatsList">
+                        <div class="stat-row">
+                            <span class="stat-label">PPG</span>
+                            <span class="stat-value" id="statPpg">118.5</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Opp PPG</span>
+                            <span class="stat-value" id="statOppPpg">108.2</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Diff</span>
+                            <span class="stat-value positive" id="statDiff">+10.3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Roster -->
+                <div class="team-card wide">
+                    <h3>Roster</h3>
+                    <div class="roster-table-container">
+                        <table class="roster-table">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Pos</th>
+                                    <th>PPG</th>
+                                    <th>RPG</th>
+                                    <th>APG</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rosterTableBody">
+                                <!-- Roster will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-state" id="errorState" style="display: none;">
+            <p>Failed to load team data. <a href="standings.html">Return to Standings</a></p>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/team-page.js"></script>
+</body>
+
+</html>

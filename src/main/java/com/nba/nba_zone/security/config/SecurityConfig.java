@@ -46,6 +46,7 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/games/**",
                                 "/api/teams/**",
+                                "/api/standings/**",
                                 "/",
                                 "/index.html",
                                 "/login.html",
@@ -54,12 +55,17 @@ public class SecurityConfig {
                                 "/game-details.html",
                                 "/my-team.html",
                                 "/players.html",
+                                "/standings.html",
+                                "/player-profile.html",
+                                "/team-page.html",
                                 "/api/v1/player/**",
+                                "/api/player-stats/**",
                                 "/styles.css",
                                 "/script.js",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
+                                "/data/**",
                                 "/README.md")
                         .permitAll()
                         // All other requests require authentication

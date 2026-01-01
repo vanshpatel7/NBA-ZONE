@@ -1,6 +1,5 @@
 package com.nba.nba_zone.game;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,10 +15,10 @@ import java.util.List;
 @Service
 public class GameService {
 
-    private static final String API_BASE_URL = "https://api.balldontlie.io/v1";
+    private static final String API_BASE_URL = "http://localhost:5001";
 
-    @Value("${balldontlie.api.key}")
-    private String apiKey;
+    // API Key no longer needed for local python service wrapper
+    // private String apiKey;
 
     private final RestTemplate restTemplate;
 
@@ -32,7 +31,7 @@ public class GameService {
         String url = API_BASE_URL + "/games?dates[]=" + dateStr;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", apiKey);
+        // headers.set("Authorization", apiKey);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -70,7 +69,7 @@ public class GameService {
         }
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", apiKey);
+        // headers.set("Authorization", apiKey);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -91,11 +90,47 @@ public class GameService {
         return Collections.emptyList();
     }
 
+    public List<Game> getGamesForDateRange(LocalDate startDate, LocalDate endDate) {
+        // Build URL with all dates in range
+        StringBuilder urlBuilder = new StringBuilder(API_BASE_URL + "/games?");
+
+        LocalDate current = startDate;
+        boolean first = true;
+        while (!current.isAfter(endDate)) {
+            if (!first)
+                urlBuilder.append("&");
+            urlBuilder.append("dates[]=").append(current.format(DateTimeFormatter.ISO_LOCAL_DATE));
+            current = current.plusDays(1);
+            first = false;
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        // headers.set("Authorization", apiKey);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<GamesResponse> response = restTemplate.exchange(
+                    urlBuilder.toString(),
+                    HttpMethod.GET,
+                    entity,
+                    GamesResponse.class);
+
+            if (response.getBody() != null && response.getBody().getData() != null) {
+                return response.getBody().getData();
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching games for date range: " + e.getMessage());
+        }
+
+        return Collections.emptyList();
+    }
+
     public Game getGameById(Long gameId) {
         String url = API_BASE_URL + "/games/" + gameId;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", apiKey);
+        // headers.set("Authorization", apiKey);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 

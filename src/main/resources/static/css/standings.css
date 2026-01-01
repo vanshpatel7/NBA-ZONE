@@ -1,0 +1,147 @@
+/* Standings Page Styles */
+
+.conference-tabs {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.conf-tab {
+    padding: 0.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.conf-tab:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.conf-tab.active {
+    background: var(--accent-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+    border-color: transparent;
+}
+
+.standings-content {
+    margin-top: 1.5rem;
+}
+
+.conference-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.conference-title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.standings-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+.standings-table th,
+.standings-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.standings-table th {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.standings-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.rank-col {
+    width: 50px;
+    text-align: center !important;
+}
+
+.team-col {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 200px;
+}
+
+.team-logo-small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.team-name {
+    font-weight: 500;
+}
+
+.playoff-spot {
+    /* Subtle highlight for playoff teams */
+}
+
+.playoff-spot:nth-child(-n+6) .rank-col {
+    color: #4ade80;
+}
+
+.play-in .rank-col {
+    color: #facc15;
+}
+
+.streak-win {
+    color: #4ade80;
+    font-weight: 600;
+}
+
+.streak-loss {
+    color: #f87171;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .conference-tabs {
+        width: 100%;
+    }
+
+    .conf-tab {
+        flex: 1;
+        text-align: center;
+    }
+
+    .standings-table th,
+    .standings-table td {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .team-col {
+        min-width: 150px;
+    }
+
+    .team-logo-small {
+        width: 28px;
+        height: 28px;
+        font-size: 0.6rem;
+    }
+}

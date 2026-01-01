@@ -21,7 +21,9 @@ public class GameController {
     @GetMapping
     public ResponseEntity<?> getGames(
             @RequestParam(required = false) String date,
-            @RequestParam(required = false, defaultValue = "today") String filter) {
+            @RequestParam(required = false, defaultValue = "today") String filter,
+            @RequestParam(required = false) String start_date,
+            @RequestParam(required = false) String end_date) {
 
         try {
             List<Game> games;
@@ -30,6 +32,11 @@ public class GameController {
                 // Specific date requested
                 LocalDate requestedDate = LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
                 games = gameService.getGamesForDate(requestedDate);
+            } else if (start_date != null && end_date != null) {
+                // Date range requested (for "all" filter)
+                LocalDate startDate = LocalDate.parse(start_date, DateTimeFormatter.ISO_LOCAL_DATE);
+                LocalDate endDate = LocalDate.parse(end_date, DateTimeFormatter.ISO_LOCAL_DATE);
+                games = gameService.getGamesForDateRange(startDate, endDate);
             } else if ("week".equalsIgnoreCase(filter)) {
                 // Get games for the week
                 games = gameService.getGamesForWeek();

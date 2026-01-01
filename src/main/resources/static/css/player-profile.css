@@ -1,0 +1,191 @@
+/* Player Profile Page Styles */
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.player-info {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.player-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-initials {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.player-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.player-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.player-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.player-team {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+.player-position {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.player-number {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+}
+
+.player-bio {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+}
+
+.btn-back {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.stats-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.stats-card.wide {
+    grid-column: 1 / -1;
+}
+
+.stats-card h3 {
+    margin: 0 0 1rem;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.stat-items {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+}
+
+/* Games Table */
+.games-table-container {
+    overflow-x: auto;
+}
+
+.games-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+.games-table th,
+.games-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.games-table th {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .player-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .player-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .player-meta {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-items {
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        flex: 1;
+        min-width: 60px;
+    }
+}

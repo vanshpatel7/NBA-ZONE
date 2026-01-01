@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standings | NBA-ZONE</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/standings.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="dashboard.html" style="text-decoration: none;">
+                    <h2>NBA-ZONE</h2>
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link">Games</a>
+                <a href="my-team.html" class="nav-link">My Team</a>
+                <a href="players.html" class="nav-link">Players</a>
+                <a href="standings.html" class="nav-link active">Standings</a>
+            </div>
+            <div class="nav-user">
+                <span class="user-name" id="userName">User</span>
+                <button class="btn-logout" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">NBA Standings</h1>
+            <div class="conference-tabs">
+                <button class="conf-tab active" data-conf="east">Eastern</button>
+                <button class="conf-tab" data-conf="west">Western</button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" id="loadingState">
+            <div class="spinner-large"></div>
+            <p>Loading standings...</p>
+        </div>
+
+        <!-- Standings Tables -->
+        <div class="standings-content" id="standingsContent" style="display: none;">
+            <!-- Eastern Conference -->
+            <div class="conference-section" id="eastStandings">
+                <h2 class="conference-title">Eastern Conference</h2>
+                <div class="table-container">
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th class="rank-col">#</th>
+                                <th class="team-col">Team</th>
+                                <th>W</th>
+                                <th>L</th>
+                                <th>PCT</th>
+                                <th>GB</th>
+                                <th>L10</th>
+                                <th>STRK</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eastTableBody">
+                            <!-- Teams will be dynamically inserted -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Western Conference -->
+            <div class="conference-section" id="westStandings" style="display: none;">
+                <h2 class="conference-title">Western Conference</h2>
+                <div class="table-container">
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th class="rank-col">#</th>
+                                <th class="team-col">Team</th>
+                                <th>W</th>
+                                <th>L</th>
+                                <th>PCT</th>
+                                <th>GB</th>
+                                <th>L10</th>
+                                <th>STRK</th>
+                            </tr>
+                        </thead>
+                        <tbody id="westTableBody">
+                            <!-- Teams will be dynamically inserted -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <p>Unable to load standings data</p>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script src="js/standings.js"></script>
+</body>
+
+</html>

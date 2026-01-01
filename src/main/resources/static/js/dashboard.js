@@ -859,10 +859,23 @@ async function loadGames(filter = 'today') {
     emptyState.style.display = 'none';
 
     try {
-        // Build API URL
+        // Build API URL based on filter
         let url = '/api/games';
-        if (filter === 'week') {
+        if (filter === 'today') {
+            url += '?filter=today';
+        } else if (filter === 'week') {
             url += '?filter=week';
+        } else if (filter === 'all') {
+            // For 'all', fetch a larger range - past 7 days + next 7 days
+            const today = new Date();
+            const startDate = new Date(today);
+            startDate.setDate(startDate.getDate() - 7);
+            const endDate = new Date(today);
+            endDate.setDate(endDate.getDate() + 7);
+
+            const startStr = startDate.toISOString().split('T')[0];
+            const endStr = endDate.toISOString().split('T')[0];
+            url += `?start_date=${startStr}&end_date=${endStr}`;
         }
 
         const response = await fetch(url);
@@ -876,6 +889,13 @@ async function loadGames(filter = 'today') {
 
         if (games.length === 0) {
             loadingState.style.display = 'none';
+            if (filter === 'today') {
+                emptyState.innerHTML = '<p>No games scheduled for today</p>';
+            } else if (filter === 'week') {
+                emptyState.innerHTML = '<p>No games scheduled this week</p>';
+            } else {
+                emptyState.innerHTML = '<p>No games found</p>';
+            }
             emptyState.style.display = 'block';
             return;
         }
@@ -883,7 +903,7 @@ async function loadGames(filter = 'today') {
         // Transform API response to match our card format
         const transformedGames = games.map(game => transformGameData(game));
 
-        // Render games - grouped by date for week view
+        // Render games - grouped by date for week/all view
         if (filter === 'week' || filter === 'all') {
             gamesGrid.innerHTML = renderGamesByDate(transformedGames);
         } else {

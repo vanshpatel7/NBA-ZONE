@@ -1,6 +1,5 @@
 package com.nba.nba_zone.game;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -18,10 +17,8 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class TeamController {
 
-    private static final String API_BASE_URL = "https://api.balldontlie.io/v1";
-
-    @Value("${balldontlie.api.key}")
-    private String apiKey;
+    private static final String API_BASE_URL = "http://localhost:5001";
+    // private String apiKey;
 
     private final RestTemplate restTemplate;
 
@@ -35,7 +32,7 @@ public class TeamController {
         String url = API_BASE_URL + "/teams";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", apiKey);
+        // headers.set("Authorization", apiKey);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -60,7 +57,7 @@ public class TeamController {
         String url = API_BASE_URL + "/teams/" + teamId;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", apiKey);
+        // headers.set("Authorization", apiKey);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -87,7 +84,7 @@ public class TeamController {
         String url = API_BASE_URL + "/players?team_ids[]=" + teamId + "&per_page=25";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", apiKey);
+        // headers.set("Authorization", apiKey);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -120,7 +117,7 @@ public class TeamController {
                 + "&per_page=" + limit;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", apiKey);
+        // headers.set("Authorization", apiKey);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
@@ -146,7 +143,7 @@ public class TeamController {
         String url = API_BASE_URL + "/season_averages?season=" + season + "&player_ids[]=" + playerId;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", apiKey);
+        // headers.set("Authorization", apiKey);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
