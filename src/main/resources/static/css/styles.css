@@ -6,16 +6,14 @@
 }
 
 :root {
-    /* Color Palette - Dark Theme with Blue Accents */
-    --bg-dark: #0a0e27;
-    --bg-darker: #060918;
-    --primary-blue: #1e90ff;
-    --secondary-blue: #4da6ff;
-    --accent-blue: #00bfff;
+    /* Color Palette - NBA Official Colors */
+    --bg-dark: #0c1325;
+    --bg-darker: #080d1a;
+    --primary-blue: #1D428A;
+    --secondary-blue: #1D428A;
+    --accent-red: #C8102E;
     --text-primary: #ffffff;
-    --text-secondary: #b0b8c9;
-    --gradient-start: #1e3a8a;
-    --gradient-end: #0a0e27;
+    --text-secondary: #a0a8b8;
 
     /* Spacing */
     --spacing-xs: 0.5rem;
@@ -50,7 +48,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('images/anthony-edwards-poster-dunk-rrt4z1l90fpmxzoq.gif');
+    background-image: url('../images/anthony-edwards-poster-dunk-rrt4z1l90fpmxzoq.gif');
     background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;
@@ -142,7 +140,7 @@ body {
 .nba-logo {
     width: 120px;
     height: auto;
-    filter: drop-shadow(0 8px 20px rgba(30, 144, 255, 0.4));
+    filter: drop-shadow(0 4px 12px rgba(29, 66, 138, 0.5));
     transition: transform 0.3s ease;
     animation: pulse 2s infinite ease-in-out;
 }
@@ -173,8 +171,8 @@ body {
     font-family: 'Jersey 25', sans-serif;
     font-size: clamp(4rem, 10vw, 8rem);
     font-weight: 400;
-    color: var(--primary-blue);
-    text-shadow: 0 0 40px rgba(30, 144, 255, 0.6);
+    color: var(--text-primary);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     display: inline-block;
     position: relative;
     letter-spacing: 0.05em;
@@ -188,7 +186,7 @@ body {
     transform: translateX(-50%);
     width: 60%;
     height: 4px;
-    background: linear-gradient(90deg, transparent, var(--primary-blue), transparent);
+    background: var(--accent-red);
     border-radius: 2px;
 }
 
@@ -227,14 +225,15 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+    background: var(--accent-red);
     color: var(--text-primary);
-    box-shadow: 0 10px 30px rgba(30, 144, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.4);
 }
 
 .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(30, 144, 255, 0.5);
+    transform: translateY(-2px);
+    background: #a00d26;
+    box-shadow: 0 6px 16px rgba(200, 16, 46, 0.5);
 }
 
 .btn-secondary {
@@ -246,8 +245,8 @@ body {
 .btn-secondary:hover {
     background: var(--primary-blue);
     color: var(--text-primary);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(30, 144, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 66, 138, 0.4);
 }
 
 /* Stats Preview */
@@ -262,27 +261,27 @@ body {
 .stat-item {
     text-align: center;
     padding: var(--spacing-sm) var(--spacing-md);
-    background: rgba(30, 144, 255, 0.05);
-    border-radius: 20px;
-    border: 1px solid rgba(30, 144, 255, 0.2);
+    background: rgba(29, 66, 138, 0.15);
+    border-radius: 12px;
+    border: 1px solid rgba(29, 66, 138, 0.3);
     backdrop-filter: blur(10px);
     min-width: 140px;
     transition: all 0.3s ease;
 }
 
 .stat-item:hover {
-    transform: translateY(-5px);
-    background: rgba(30, 144, 255, 0.1);
-    border-color: rgba(30, 144, 255, 0.4);
-    box-shadow: 0 10px 30px rgba(30, 144, 255, 0.2);
+    transform: translateY(-3px);
+    background: rgba(29, 66, 138, 0.25);
+    border-color: rgba(29, 66, 138, 0.5);
+    box-shadow: 0 6px 16px rgba(29, 66, 138, 0.3);
 }
 
 .stat-number {
     font-family: 'Jersey 25', sans-serif;
     font-size: 3rem;
     font-weight: 400;
-    color: var(--primary-blue);
-    text-shadow: 0 0 20px rgba(30, 144, 255, 0.4);
+    color: var(--text-primary);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     margin-bottom: var(--spacing-xs);
 }
 

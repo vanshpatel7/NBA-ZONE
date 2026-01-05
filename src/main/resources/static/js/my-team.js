@@ -36,6 +36,26 @@ const NBA_TEAMS = [
     { id: 30, name: 'Jazz', fullName: 'Utah Jazz', abbreviation: 'UTA', conference: 'West', division: 'Northwest' }
 ];
 
+// NBA Team ID mapping for logo URLs
+const NBA_TEAM_IDS = {
+    'ATL': 1610612737, 'BOS': 1610612738, 'BKN': 1610612751, 'CHA': 1610612766,
+    'CHI': 1610612741, 'CLE': 1610612739, 'DAL': 1610612742, 'DEN': 1610612743,
+    'DET': 1610612765, 'GSW': 1610612744, 'HOU': 1610612745, 'IND': 1610612754,
+    'LAC': 1610612746, 'LAL': 1610612747, 'MEM': 1610612763, 'MIA': 1610612748,
+    'MIL': 1610612749, 'MIN': 1610612750, 'NOP': 1610612740, 'NYK': 1610612752,
+    'OKC': 1610612760, 'ORL': 1610612753, 'PHI': 1610612755, 'PHX': 1610612756,
+    'POR': 1610612757, 'SAC': 1610612758, 'SAS': 1610612759, 'TOR': 1610612761,
+    'UTA': 1610612762, 'WAS': 1610612764
+};
+
+function getTeamLogoUrl(abbreviation) {
+    const teamId = NBA_TEAM_IDS[abbreviation];
+    if (teamId) {
+        return `https://cdn.nba.com/logos/nba/${teamId}/primary/L/logo.svg`;
+    }
+    return '';
+}
+
 // Team stats mock data - Updated with more accurate current stats
 const TEAM_STATS = {
     'LAL': {
@@ -188,12 +208,18 @@ function renderTeamsGrid(conference = 'all') {
         teams = NBA_TEAMS.filter(t => t.conference === 'West');
     }
 
-    grid.innerHTML = teams.map(team => `
-        <div class="team-card" data-team-id="${team.id}" onclick="selectTeam(${team.id})">
-            <div class="team-logo">${team.abbreviation}</div>
-            <div class="team-name">${team.name}</div>
-        </div>
-    `).join('');
+    grid.innerHTML = teams.map(team => {
+        const logoUrl = getTeamLogoUrl(team.abbreviation);
+        return `
+            <div class="team-card" data-team-id="${team.id}" onclick="selectTeam(${team.id})">
+                <div class="team-logo">
+                    <img src="${logoUrl}" alt="${team.abbreviation}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span class="logo-fallback" style="display:none;">${team.abbreviation}</span>
+                </div>
+                <div class="team-name">${team.name}</div>
+            </div>
+        `;
+    }).join('');
 }
 
 // Select team (show confirmation)
@@ -201,7 +227,11 @@ function selectTeam(teamId) {
     pendingTeam = NBA_TEAMS.find(t => t.id === teamId);
     if (!pendingTeam) return;
 
-    document.getElementById('modalTeamLogo').textContent = pendingTeam.abbreviation;
+    const logoUrl = getTeamLogoUrl(pendingTeam.abbreviation);
+    document.getElementById('modalTeamLogo').innerHTML = `
+        <img src="${logoUrl}" alt="${pendingTeam.abbreviation}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <span class="logo-fallback" style="display:none;">${pendingTeam.abbreviation}</span>
+    `;
     document.getElementById('modalTeamName').textContent = pendingTeam.fullName;
     document.getElementById('confirmModal').style.display = 'flex';
 }
@@ -236,7 +266,11 @@ async function showTeamDashboard(team) {
     document.getElementById('teamDashboard').style.display = 'block';
 
     // Update header
-    document.getElementById('myTeamLogo').textContent = team.abbreviation;
+    const logoUrl = getTeamLogoUrl(team.abbreviation);
+    document.getElementById('myTeamLogo').innerHTML = `
+        <img src="${logoUrl}" alt="${team.abbreviation}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <span class="logo-fallback" style="display:none;">${team.abbreviation}</span>
+    `;
     document.getElementById('myTeamName').textContent = team.fullName;
     document.getElementById('myTeamConf').textContent = `${team.conference}ern Conference • ${team.division} Division`;
 

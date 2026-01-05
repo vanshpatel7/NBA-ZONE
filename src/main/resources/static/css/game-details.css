@@ -95,8 +95,9 @@
 }
 
 .team-name-large {
-    font-size: 1.8rem;
-    font-weight: 900;
+    font-family: 'Jersey 25', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 400;
     color: var(--text-primary);
     margin: 0 0 0.25rem 0;
 }
@@ -187,9 +188,10 @@
 }
 
 .card-header h3 {
+    font-family: 'Jersey 25', sans-serif;
     color: var(--text-primary);
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.4rem;
+    font-weight: 400;
     margin: 0;
 }
 
@@ -413,9 +415,10 @@
 
 /* Game Info */
 .game-info-card h3 {
+    font-family: 'Jersey 25', sans-serif;
     color: var(--text-primary);
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.4rem;
+    font-weight: 400;
     margin: 0 0 1rem 0;
 }
 

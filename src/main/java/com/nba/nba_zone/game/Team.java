@@ -3,7 +3,7 @@ package com.nba.nba_zone.game;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Team {
-    private int id;
+    private long id;
     private String conference;
     private String division;
     private String city;
@@ -14,12 +14,14 @@ public class Team {
 
     private String abbreviation;
 
+    private String record;
+
     // Getters and Setters
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -69,5 +71,13 @@ public class Team {
 
     public void setAbbreviation(String abbreviation) {
         this.abbreviation = abbreviation;
+    }
+
+    public String getRecord() {
+        return record;
+    }
+
+    public void setRecord(String record) {
+        this.record = record;
     }
 }

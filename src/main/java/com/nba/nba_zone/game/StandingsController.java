@@ -28,7 +28,8 @@ public class StandingsController {
     @GetMapping
     public ResponseEntity<?> getStandings() {
         String url = PYTHON_SERVICE_URL + "/standings";
-        HttpEntity<String> entity = new HttpEntity<String>(null);
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
             ResponseEntity<Object> response = restTemplate.exchange(

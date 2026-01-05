@@ -1056,6 +1056,10 @@ function createGameCard(game) {
     const awayWinner = isFinal && game.awayTeam.score > game.homeTeam.score;
     const homeWinner = isFinal && game.homeTeam.score > game.awayTeam.score;
 
+    // Get team logo URLs from NBA CDN
+    const awayLogoUrl = getTeamLogoUrl(game.awayTeam.abbreviation);
+    const homeLogoUrl = getTeamLogoUrl(game.homeTeam.abbreviation);
+
     return `
         <div class="game-card" data-game-id="${game.id}">
             <div class="game-status">
@@ -1072,45 +1076,50 @@ function createGameCard(game) {
             <div class="game-teams">
                 <div class="team ${awayWinner ? 'winner' : ''}">
                     <div class="team-info">
-                        <div class="team-logo">${game.awayTeam.logo}</div>
-                        <div class="team-details">
-                            <div class="team-name">${game.awayTeam.name}</div>
-                            <div class="team-record">${game.awayTeam.record}</div>
-                        </div>
+                        <img class="team-logo-img" src="${awayLogoUrl}" alt="${game.awayTeam.abbreviation}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="team-logo-fallback" style="display:none;">${game.awayTeam.abbreviation}</div>
+                        <div class="team-name">${game.awayTeam.name}</div>
                     </div>
-                    ${!isScheduled ? `<div class="team-score">${game.awayTeam.score}</div>` : ''}
+                    <div class="team-right">
+                        ${!isScheduled ? `<div class="team-score">${game.awayTeam.score}</div>` : ''}
+                        <div class="team-record">${game.awayTeam.record || ''}</div>
+                    </div>
                 </div>
                 
                 <div class="team ${homeWinner ? 'winner' : ''}">
                     <div class="team-info">
-                        <div class="team-logo">${game.homeTeam.logo}</div>
-                        <div class="team-details">
-                            <div class="team-name">${game.homeTeam.name}</div>
-                            <div class="team-record">${game.homeTeam.record}</div>
-                        </div>
+                        <img class="team-logo-img" src="${homeLogoUrl}" alt="${game.homeTeam.abbreviation}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="team-logo-fallback" style="display:none;">${game.homeTeam.abbreviation}</div>
+                        <div class="team-name">${game.homeTeam.name}</div>
                     </div>
-                    ${!isScheduled ? `<div class="team-score">${game.homeTeam.score}</div>` : ''}
+                    <div class="team-right">
+                        ${!isScheduled ? `<div class="team-score">${game.homeTeam.score}</div>` : ''}
+                        <div class="team-record">${game.homeTeam.record || ''}</div>
+                    </div>
                 </div>
             </div>
-            
-            ${game.stats ? `
-                <div class="game-stats">
-                    ${game.stats.viewers ? `
-                        <div class="stat-item">
-                            <span class="stat-icon">👁️</span>
-                            <span class="stat-value">${game.stats.viewers}</span>
-                        </div>
-                    ` : ''}
-                    ${game.stats.spread ? `
-                        <div class="stat-item">
-                            <span class="stat-icon">📊</span>
-                            <span class="stat-label">${game.stats.spread}</span>
-                        </div>
-                    ` : ''}
-                </div>
-            ` : ''}
         </div>
     `;
+}
+
+// NBA Team ID mapping for logo URLs
+const teamIdMap = {
+    'ATL': 1610612737, 'BOS': 1610612738, 'BKN': 1610612751, 'CHA': 1610612766,
+    'CHI': 1610612741, 'CLE': 1610612739, 'DAL': 1610612742, 'DEN': 1610612743,
+    'DET': 1610612765, 'GSW': 1610612744, 'HOU': 1610612745, 'IND': 1610612754,
+    'LAC': 1610612746, 'LAL': 1610612747, 'MEM': 1610612763, 'MIA': 1610612748,
+    'MIL': 1610612749, 'MIN': 1610612750, 'NOP': 1610612740, 'NYK': 1610612752,
+    'OKC': 1610612760, 'ORL': 1610612753, 'PHI': 1610612755, 'PHX': 1610612756,
+    'POR': 1610612757, 'SAC': 1610612758, 'SAS': 1610612759, 'TOR': 1610612761,
+    'UTA': 1610612762, 'WAS': 1610612764
+};
+
+function getTeamLogoUrl(abbreviation) {
+    const teamId = teamIdMap[abbreviation];
+    if (teamId) {
+        return `https://cdn.nba.com/logos/nba/${teamId}/primary/L/logo.svg`;
+    }
+    return '';
 }
 
 // Add click handlers to game cards

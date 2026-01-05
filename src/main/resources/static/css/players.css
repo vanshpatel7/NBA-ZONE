@@ -43,9 +43,10 @@
 }
 
 .section-header h3 {
+    font-family: 'Jersey 25', sans-serif;
     color: var(--text-primary);
-    font-size: 1.25rem;
-    font-weight: 800;
+    font-size: 1.6rem;
+    font-weight: 400;
 }
 
 .table-container {
