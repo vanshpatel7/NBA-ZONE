@@ -279,37 +279,128 @@ async function showTeamDashboard(team) {
     document.getElementById('leadersList').innerHTML = '<p class="loading-text">Loading stats...</p>';
     document.getElementById('rosterBody').innerHTML = '<tr><td colspan="5" class="loading-text">Loading roster...</td></tr>';
 
-    // Try to fetch live data, fall back to mock if API fails
+    // Use the NBA official team ID for API calls
+    const nbaTeamId = NBA_TEAM_IDS[team.abbreviation];
+
+    // Fetch LIVE last 5 games directly from Python service (real-time data)
     try {
-        // Fetch recent games
-        const gamesResponse = await fetch(`/api/teams/${team.id}/games?limit=5`);
+        const gamesResponse = await fetch(`http://localhost:5001/teams/${nbaTeamId}/games?limit=5`);
         if (gamesResponse.ok) {
             const gamesData = await gamesResponse.json();
-            updateLastGames(gamesData.data || [], team);
+            if (gamesData.data && gamesData.data.length > 0) {
+                updateLastGamesFromAPI(gamesData.data);
+            } else {
+                throw new Error('No games data returned');
+            }
         } else {
             throw new Error('Games API failed');
         }
     } catch (error) {
-        console.warn('Failed to fetch live games, using mock:', error);
+        console.warn('Failed to fetch live games, using fallback:', error);
         const mockStats = TEAM_STATS[team.abbreviation] || DEFAULT_STATS;
         updateLastGamesFromMock(mockStats.lastGames);
     }
 
+    // Fetch LIVE leaders and roster from Python service
     try {
-        // Fetch players
-        const playersResponse = await fetch(`/api/teams/${team.id}/players`);
-        if (playersResponse.ok) {
-            const playersData = await playersResponse.json();
-            updateRoster(playersData.data || []);
+        const leadersResponse = await fetch(`http://localhost:5001/teams/${nbaTeamId}/leaders`);
+        if (leadersResponse.ok) {
+            const leadersData = await leadersResponse.json();
+
+            // Update leaders from live data
+            if (leadersData.leaders && leadersData.leaders.length > 0) {
+                updateLeadersFromAPI(leadersData.leaders);
+            } else {
+                throw new Error('No leaders data');
+            }
+
+            // Update roster from live data
+            if (leadersData.roster && leadersData.roster.length > 0) {
+                updateRosterFromAPI(leadersData.roster);
+            } else {
+                throw new Error('No roster data');
+            }
         } else {
-            throw new Error('Players API failed');
+            throw new Error('Leaders API failed');
         }
     } catch (error) {
-        console.warn('Failed to fetch live players, using mock:', error);
-        const mockStats = TEAM_STATS[team.abbreviation] || DEFAULT_STATS;
-        updateRosterFromMock(mockStats.roster);
-        updateLeadersFromMock(mockStats.leaders);
+        console.warn('Failed to fetch live leaders, using fallback:', error);
+        // Fall back to static JSON file
+        try {
+            const response = await fetch('/data/team_stats.json');
+            if (response.ok) {
+                const allTeamStats = await response.json();
+                const teamData = allTeamStats[team.abbreviation];
+                if (teamData) {
+                    updateLeadersFromMock(teamData.leaders || []);
+                    updateRosterFromMock(teamData.roster || []);
+                } else {
+                    throw new Error('Team not in static data');
+                }
+            }
+        } catch (fallbackError) {
+            const mockStats = TEAM_STATS[team.abbreviation] || DEFAULT_STATS;
+            updateLeadersFromMock(mockStats.leaders);
+            updateRosterFromMock(mockStats.roster);
+        }
     }
+}
+// Team abbreviation to full name mapping for display
+const TEAM_ABBREV_TO_NAME = {
+    'ATL': 'Hawks', 'BOS': 'Celtics', 'BKN': 'Nets', 'CHA': 'Hornets',
+    'CHI': 'Bulls', 'CLE': 'Cavaliers', 'DAL': 'Mavericks', 'DEN': 'Nuggets',
+    'DET': 'Pistons', 'GSW': 'Warriors', 'HOU': 'Rockets', 'IND': 'Pacers',
+    'LAC': 'Clippers', 'LAL': 'Lakers', 'MEM': 'Grizzlies', 'MIA': 'Heat',
+    'MIL': 'Bucks', 'MIN': 'Timberwolves', 'NOP': 'Pelicans', 'NYK': 'Knicks',
+    'OKC': 'Thunder', 'ORL': 'Magic', 'PHI': '76ers', 'PHX': 'Suns',
+    'POR': 'Trail Blazers', 'SAC': 'Kings', 'SAS': 'Spurs', 'TOR': 'Raptors',
+    'UTA': 'Jazz', 'WAS': 'Wizards'
+};
+
+// Update last games from LIVE API data
+function updateLastGamesFromAPI(games) {
+    const lastGamesList = document.getElementById('lastGamesList');
+    lastGamesList.innerHTML = games.map(game => {
+        // Format the date nicely
+        const dateStr = game.formatted_date || game.date;
+
+        // Get opponent full name
+        const opponentName = TEAM_ABBREV_TO_NAME[game.opponent] || game.opponent;
+
+        // Format: "W-Suns: 105-108" or "L-Warriors: 94-131"
+        const resultPrefix = game.win ? 'W' : 'L';
+        const displayResult = `${resultPrefix}-${opponentName}: ${game.team_score}-${game.opponent_score}`;
+
+        return `
+            <div class="game-row">
+                <span class="game-date">${dateStr}</span>
+                <span class="game-result ${game.win ? 'win' : 'loss'}">${displayResult}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// Update last games from static JSON data
+function updateLastGamesFromStatic(lastGames) {
+    const lastGamesList = document.getElementById('lastGamesList');
+    lastGamesList.innerHTML = lastGames.map(game => {
+        // Format the date nicely
+        let dateStr = game.date;
+        try {
+            const dateObj = new Date(game.date);
+            dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } catch (e) {
+            // Use the date as-is if parsing fails
+        }
+
+        return `
+            <div class="game-row">
+                <span class="game-date">${dateStr}</span>
+                <span class="game-result ${game.win ? 'win' : 'loss'}">${game.result}</span>
+                <span class="opponent">${game.opponent}</span>
+            </div>
+        `;
+    }).join('');
 }
 
 // Update last games from API data
@@ -322,23 +413,19 @@ function updateLastGames(games, team) {
         return;
     }
 
-    // Sort by date descending
-    const sortedGames = games.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
-
-    lastGamesList.innerHTML = sortedGames.map(game => {
-        const isHome = game.home_team.id === team.id;
-        const myScore = isHome ? game.home_team_score : game.visitor_team_score;
-        const oppScore = isHome ? game.visitor_team_score : game.home_team_score;
-        const opponent = isHome ? game.visitor_team : game.home_team;
-        const win = myScore > oppScore;
-        const gameDate = new Date(game.date);
-        const dateStr = gameDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    // The new API returns games already sorted and with pre-formatted fields
+    lastGamesList.innerHTML = games.map(game => {
+        // Use the pre-formatted fields from the new Python API
+        const dateStr = game.formatted_date || game.date;
+        const displayResult = game.display_result || `${game.result} ${game.team_score}-${game.opponent_score}`;
+        const displayOpponent = game.display_opponent || `${game.is_home ? 'vs' : 'at'} ${game.opponent}`;
+        const isWin = game.win;
 
         return `
             <div class="game-row">
                 <span class="game-date">${dateStr}</span>
-                <span class="game-result ${win ? 'win' : 'loss'}">${win ? 'W' : 'L'} ${myScore}-${oppScore}</span>
-                <span class="opponent">${isHome ? 'vs' : 'at'} ${opponent.abbreviation}</span>
+                <span class="game-result ${isWin ? 'win' : 'loss'}">${displayResult}</span>
+                <span class="opponent">${displayOpponent}</span>
             </div>
         `;
     }).join('');
@@ -415,3 +502,28 @@ function updateLeadersFromMock(leaders) {
     `).join('');
 }
 
+// Update leaders from LIVE API data
+function updateLeadersFromAPI(leaders) {
+    const leadersList = document.getElementById('leadersList');
+    leadersList.innerHTML = leaders.map(leader => `
+        <div class="leader-item">
+            <span class="leader-category">${leader.category}</span>
+            <span class="leader-name">${leader.name}</span>
+            <span class="leader-value">${leader.value}</span>
+        </div>
+    `).join('');
+}
+
+// Update roster from LIVE API data
+function updateRosterFromAPI(roster) {
+    const rosterBody = document.getElementById('rosterBody');
+    rosterBody.innerHTML = roster.map(player => `
+        <tr>
+            <td>${player.name}</td>
+            <td>-</td>
+            <td>${player.ppg}</td>
+            <td>${player.rpg}</td>
+            <td>${player.apg}</td>
+        </tr>
+    `).join('');
+}

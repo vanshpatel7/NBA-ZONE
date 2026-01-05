@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from nba_api.live.nba.endpoints import scoreboard
-from nba_api.stats.endpoints import leaguestandings
+from nba_api.stats.endpoints import leaguestandings, teamgamelog, leaguegamefinder, teamplayerdashboard
+from nba_api.stats.static import teams
+from datetime import datetime, timedelta
 import time
-import datetime
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 # Cache / Rate Limiting prevention
 last_request_time = 0
@@ -147,6 +150,226 @@ def get_standings():
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({"status": "up"})
+
+# NBA Team abbreviation to ID mapping
+NBA_TEAM_IDS = {
+    'ATL': 1610612737, 'BOS': 1610612738, 'BKN': 1610612751, 'CHA': 1610612766,
+    'CHI': 1610612741, 'CLE': 1610612739, 'DAL': 1610612742, 'DEN': 1610612743,
+    'DET': 1610612765, 'GSW': 1610612744, 'HOU': 1610612745, 'IND': 1610612754,
+    'LAC': 1610612746, 'LAL': 1610612747, 'MEM': 1610612763, 'MIA': 1610612748,
+    'MIL': 1610612749, 'MIN': 1610612750, 'NOP': 1610612740, 'NYK': 1610612752,
+    'OKC': 1610612760, 'ORL': 1610612753, 'PHI': 1610612755, 'PHX': 1610612756,
+    'POR': 1610612757, 'SAC': 1610612758, 'SAS': 1610612759, 'TOR': 1610612761,
+    'UTA': 1610612762, 'WAS': 1610612764
+}
+
+# Reverse mapping: ID to abbreviation
+NBA_ID_TO_ABBREV = {v: k for k, v in NBA_TEAM_IDS.items()}
+
+@app.route('/teams/<int:team_id>/games', methods=['GET'])
+def get_team_games(team_id):
+    """
+    Get recent completed games for a specific team using LeagueGameFinder.
+    Returns the last N games with scores and results.
+    """
+    try:
+        limit = request.args.get('limit', 5, type=int)
+        
+        # Rate limiting
+        global last_request_time
+        now = time.time()
+        if now - last_request_time < MIN_REQUEST_INTERVAL:
+            time.sleep(MIN_REQUEST_INTERVAL - (now - last_request_time))
+        last_request_time = time.time()
+        
+        # Get games from the last 60 days using LeagueGameFinder (has current season data)
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=60)
+        
+        finder = leaguegamefinder.LeagueGameFinder(
+            team_id_nullable=team_id,
+            date_from_nullable=start_date.strftime('%m/%d/%Y'),
+            date_to_nullable=end_date.strftime('%m/%d/%Y')
+        )
+        
+        data = finder.get_dict()
+        games_list = []
+        
+        if 'resultSets' in data and len(data['resultSets']) > 0:
+            headers = data['resultSets'][0]['headers']
+            rows = data['resultSets'][0]['rowSet']
+            
+            # Get column indices
+            def get_idx(col):
+                try:
+                    return headers.index(col)
+                except ValueError:
+                    return -1
+            
+            game_id_idx = get_idx('GAME_ID')
+            game_date_idx = get_idx('GAME_DATE')
+            matchup_idx = get_idx('MATCHUP')
+            wl_idx = get_idx('WL')
+            pts_idx = get_idx('PTS')
+            plus_minus_idx = get_idx('PLUS_MINUS')
+            
+            # Get the team's abbreviation
+            team_abbrev = NBA_ID_TO_ABBREV.get(team_id, 'UNK')
+            
+            # Process last N games (rows are already in reverse chronological order)
+            for i, row in enumerate(rows[:limit]):
+                game_date = row[game_date_idx] if game_date_idx >= 0 else ''
+                matchup = row[matchup_idx] if matchup_idx >= 0 else ''
+                wl = row[wl_idx] if wl_idx >= 0 else ''
+                pts = row[pts_idx] if pts_idx >= 0 else 0
+                
+                # Parse matchup to get opponent and home/away
+                # Format is like "OKC vs. MIN" (home) or "OKC @ DAL" (away)
+                is_home = ' vs. ' in matchup
+                if is_home:
+                    parts = matchup.split(' vs. ')
+                    opponent_abbrev = parts[1] if len(parts) > 1 else 'UNK'
+                else:
+                    parts = matchup.split(' @ ')
+                    opponent_abbrev = parts[1] if len(parts) > 1 else 'UNK'
+                
+                # Calculate opponent score using plus/minus
+                opp_pts = 0
+                if plus_minus_idx >= 0 and row[plus_minus_idx] is not None:
+                    plus_minus = row[plus_minus_idx]
+                    opp_pts = pts - plus_minus
+                
+                # Format date nicely
+                try:
+                    date_obj = datetime.strptime(game_date, '%Y-%m-%d')
+                    formatted_date = date_obj.strftime('%b %d')
+                except:
+                    formatted_date = game_date
+                
+                game_obj = {
+                    "id": row[game_id_idx] if game_id_idx >= 0 else i,
+                    "date": game_date,
+                    "formatted_date": formatted_date,
+                    "matchup": matchup,
+                    "result": wl,
+                    "win": wl == 'W',
+                    "team_score": pts,
+                    "opponent_score": int(opp_pts) if opp_pts else 0,
+                    "opponent": opponent_abbrev,
+                    "is_home": is_home,
+                    "display_opponent": f"{'vs' if is_home else 'at'} {opponent_abbrev}",
+                    "display_result": f"{'W' if wl == 'W' else 'L'} {pts}-{int(opp_pts) if opp_pts else '?'}"
+                }
+                games_list.append(game_obj)
+        
+        return jsonify({"data": games_list, "team_id": team_id})
+        
+    except Exception as e:
+        print(f"Error fetching team games: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"data": [], "error": str(e)}), 500
+
+@app.route('/teams/<int:team_id>/leaders', methods=['GET'])
+def get_team_leaders(team_id):
+    """
+    Get live team leaders (top performers) by PPG, RPG, APG.
+    Returns the top scorer, rebounder, and assists leader with current season stats.
+    """
+    try:
+        # Rate limiting
+        global last_request_time
+        now = time.time()
+        if now - last_request_time < MIN_REQUEST_INTERVAL:
+            time.sleep(MIN_REQUEST_INTERVAL - (now - last_request_time))
+        last_request_time = time.time()
+        
+        # Fetch team player stats for current season (2025-26)
+        dashboard = teamplayerdashboard.TeamPlayerDashboard(
+            team_id=team_id,
+            season='2025-26'
+        )
+        
+        data = dashboard.get_dict()
+        
+        # Find the PlayersSeasonTotals result set
+        players = []
+        for rs in data.get('resultSets', []):
+            if 'Player' in rs.get('name', ''):
+                headers = rs['headers']
+                rows = rs.get('rowSet', [])
+                
+                # Get column indices
+                name_idx = headers.index('PLAYER_NAME') if 'PLAYER_NAME' in headers else -1
+                gp_idx = headers.index('GP') if 'GP' in headers else -1
+                pts_idx = headers.index('PTS') if 'PTS' in headers else -1
+                reb_idx = headers.index('REB') if 'REB' in headers else -1
+                ast_idx = headers.index('AST') if 'AST' in headers else -1
+                stl_idx = headers.index('STL') if 'STL' in headers else -1
+                blk_idx = headers.index('BLK') if 'BLK' in headers else -1
+                
+                for row in rows:
+                    gp = row[gp_idx] if gp_idx >= 0 else 1
+                    if gp > 0:
+                        players.append({
+                            'name': row[name_idx] if name_idx >= 0 else 'Unknown',
+                            'ppg': round(row[pts_idx] / gp, 1) if pts_idx >= 0 else 0,
+                            'rpg': round(row[reb_idx] / gp, 1) if reb_idx >= 0 else 0,
+                            'apg': round(row[ast_idx] / gp, 1) if ast_idx >= 0 else 0,
+                            'spg': round(row[stl_idx] / gp, 1) if stl_idx >= 0 else 0,
+                            'bpg': round(row[blk_idx] / gp, 1) if blk_idx >= 0 else 0,
+                            'gp': gp
+                        })
+                break
+        
+        if not players:
+            return jsonify({"leaders": [], "roster": [], "error": "No player data found"}), 404
+        
+        # Find leaders in each category
+        pts_leader = max(players, key=lambda x: x['ppg'])
+        reb_leader = max(players, key=lambda x: x['rpg'])
+        ast_leader = max(players, key=lambda x: x['apg'])
+        
+        # Format leader's name (just last name for display)
+        def get_last_name(full_name):
+            parts = full_name.split()
+            return parts[-1] if parts else full_name
+        
+        leaders = [
+            {
+                "category": "Points",
+                "name": get_last_name(pts_leader['name']),
+                "full_name": pts_leader['name'],
+                "value": f"{pts_leader['ppg']} PPG"
+            },
+            {
+                "category": "Rebounds",
+                "name": get_last_name(reb_leader['name']),
+                "full_name": reb_leader['name'],
+                "value": f"{reb_leader['rpg']} RPG"
+            },
+            {
+                "category": "Assists",
+                "name": get_last_name(ast_leader['name']),
+                "full_name": ast_leader['name'],
+                "value": f"{ast_leader['apg']} APG"
+            }
+        ]
+        
+        # Sort roster by PPG for the top 5 players
+        roster = sorted(players, key=lambda x: x['ppg'], reverse=True)[:5]
+        
+        return jsonify({
+            "leaders": leaders,
+            "roster": roster,
+            "team_id": team_id
+        })
+        
+    except Exception as e:
+        print(f"Error fetching team leaders: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"leaders": [], "roster": [], "error": str(e)}), 500
 
 if __name__ == '__main__':
     print("Starting NBA Python Service on port 5001...")

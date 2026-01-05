@@ -107,18 +107,10 @@ public class TeamController {
     @GetMapping("/{teamId}/games")
     public ResponseEntity<?> getTeamRecentGames(@PathVariable Long teamId,
             @RequestParam(required = false, defaultValue = "5") Integer limit) {
-        // Get games from the last 30 days for this team
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(30);
-
-        String url = API_BASE_URL + "/games?team_ids[]=" + teamId
-                + "&start_date=" + startDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
-                + "&end_date=" + endDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
-                + "&per_page=" + limit;
+        // Call the Python service's team games endpoint
+        String url = API_BASE_URL + "/teams/" + teamId + "/games?limit=" + limit;
 
         HttpHeaders headers = new HttpHeaders();
-        // headers.set("Authorization", apiKey);
-
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
