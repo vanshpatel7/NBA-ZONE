@@ -924,16 +924,8 @@ async function loadGames(filter = 'today') {
         } else if (filter === 'week') {
             url += '?filter=week';
         } else if (filter === 'all') {
-            // For 'all', fetch a larger range - past 7 days + next 7 days
-            const today = new Date();
-            const startDate = new Date(today);
-            startDate.setDate(startDate.getDate() - 7);
-            const endDate = new Date(today);
-            endDate.setDate(endDate.getDate() + 7);
-
-            const startStr = startDate.toISOString().split('T')[0];
-            const endStr = endDate.toISOString().split('T')[0];
-            url += `?start_date=${startStr}&end_date=${endStr}`;
+            // Get all upcoming games (excludes completed games)
+            url += '?filter=all';
         }
 
         const response = await fetch(url);

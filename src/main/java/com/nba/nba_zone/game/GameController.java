@@ -33,13 +33,16 @@ public class GameController {
                 LocalDate requestedDate = LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
                 games = gameService.getGamesForDate(requestedDate);
             } else if (start_date != null && end_date != null) {
-                // Date range requested (for "all" filter)
+                // Date range requested
                 LocalDate startDate = LocalDate.parse(start_date, DateTimeFormatter.ISO_LOCAL_DATE);
                 LocalDate endDate = LocalDate.parse(end_date, DateTimeFormatter.ISO_LOCAL_DATE);
                 games = gameService.getGamesForDateRange(startDate, endDate);
             } else if ("week".equalsIgnoreCase(filter)) {
-                // Get games for the week
+                // Get games for the current week (Sunday-Saturday)
                 games = gameService.getGamesForWeek();
+            } else if ("all".equalsIgnoreCase(filter)) {
+                // Get all upcoming games (excluding completed)
+                games = gameService.getUpcomingGames();
             } else {
                 // Default: today's games
                 games = gameService.getTodaysGames();

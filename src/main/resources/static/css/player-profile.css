@@ -356,6 +356,55 @@
     font-weight: 600;
 }
 
+/* Usage Rate Tooltips */
+.usage-item.has-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.usage-item.has-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(43, 135, 255, 0.3);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.usage-item.has-tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+    bottom: calc(100% + 8px);
+}
+
+/* Estimated Indicator */
+.estimated-indicator {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    opacity: 0.7;
+    cursor: help;
+}
+
+.estimated-indicator:hover {
+    opacity: 1;
+}
+
 /* Trends Card */
 .trends-placeholder {
     text-align: center;

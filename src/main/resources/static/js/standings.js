@@ -30,15 +30,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadStandings();
 });
 
-// Load standings data
+// Load standings data - prioritize cached static file for speed, API as fallback
 function loadStandings() {
     const loadingState = document.getElementById('loadingState');
     const standingsContent = document.getElementById('standingsContent');
     const emptyState = document.getElementById('emptyState');
 
+    // Load from static JSON first (refreshed on startup & nightly at 12am)
     fetch('/data/standings.json')
         .then(response => {
-            if (!response.ok) throw new Error('Failed to load standings');
+            if (!response.ok) throw new Error('Static file not found');
             return response.json();
         })
         .then(data => {
@@ -48,13 +49,32 @@ function loadStandings() {
                 loadingState.style.display = 'none';
                 standingsContent.style.display = 'block';
             } else {
-                throw new Error('Invalid data format');
+                throw new Error('Invalid static data');
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            loadingState.style.display = 'none';
-            emptyState.style.display = 'block';
+        .catch(staticError => {
+            console.warn('Static standings failed, trying API:', staticError);
+            // Fallback to live API
+            fetch('/api/standings')
+                .then(response => {
+                    if (!response.ok) throw new Error('API failed');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.east && data.west && !data.error) {
+                        renderStandings('east', data.east);
+                        renderStandings('west', data.west);
+                        loadingState.style.display = 'none';
+                        standingsContent.style.display = 'block';
+                    } else {
+                        throw new Error('Invalid API data');
+                    }
+                })
+                .catch(error => {
+                    console.error('All standings sources failed:', error);
+                    loadingState.style.display = 'none';
+                    emptyState.style.display = 'block';
+                });
         });
 }
 

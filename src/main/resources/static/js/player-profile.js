@@ -409,34 +409,140 @@ function formatDate(date) {
     return `${months[date.getMonth()]} ${date.getDate()}`;
 }
 
-// Render Usage Rates
-function renderUsageRates(player) {
-    const pts = player.pts || 0;
-    const ast = player.ast || 0;
-    const trb = player.trb || 0;
-    const tov = player.tov || 0;
-    const mp = player.mp || 30;
+// Render Usage Rates - fetches from API with fallback to local calculation
+async function renderUsageRates(player) {
+    const FTA_FACTOR = 0.44;
 
-    let usgPct;
-    if (player.fga && player.fta) {
-        usgPct = Math.min(45, ((player.fga + 0.44 * player.fta + tov) / mp * 5)).toFixed(1);
-    } else {
-        usgPct = Math.min(45, Math.max(10, (pts / 35) * 40)).toFixed(1);
+    // Bar scale caps for better visual readability
+    const SCALE_CAPS = {
+        usg: 40,
+        ast: 50,
+        reb: 30,
+        tov: 30
+    };
+
+    // Tooltip definitions
+    const TOOLTIPS = {
+        usg: { label: 'Usage Rate', desc: '% of team possessions used by player while on floor' },
+        ast: { label: 'Assist Rate', desc: '% of teammate FGs assisted by player while on floor' },
+        reb: { label: 'Rebound Rate', desc: '% of available rebounds grabbed while on floor' },
+        tov: { label: 'Turnover Rate', desc: '% of player possessions ending in turnover' }
+    };
+
+    let usageData = null;
+    let isEstimated = true;
+
+    // Try to fetch from API if we have a player ID
+    if (player.id) {
+        try {
+            const response = await fetch(`/api/nba/players/${player.id}/usage-rates`);
+            if (response.ok) {
+                usageData = await response.json();
+                isEstimated = usageData.estimated || false;
+            }
+        } catch (error) {
+            console.warn('Failed to fetch usage rates from API, using local calculation:', error);
+        }
     }
 
-    const astRate = Math.min(50, Math.max(5, (ast / mp) * 36 * 2.5)).toFixed(1);
-    const rebRate = Math.min(30, Math.max(3, (trb / mp) * 36 * 1.2)).toFixed(1);
-    const tovRate = tov > 0 ? Math.min(25, Math.max(5, (tov / (player.fga || 10 + 0.44 * (player.fta || 0) + tov)) * 100)).toFixed(1) : '-';
+    // Fallback to local calculation if API fails
+    if (!usageData || usageData.usg_pct === null) {
+        const pts = player.pts || 0;
+        const ast = player.ast || 0;
+        const trb = player.trb || 0;
+        const tov = player.tov || 0;
+        const mp = player.mp || 30;
+        const fga = player.fga || 0;
+        const fta = player.fta || 0;
+        const fg = player.fg || 0;
 
-    document.getElementById('usgPct').textContent = `${usgPct}%`;
-    document.getElementById('astRate').textContent = `${astRate}%`;
-    document.getElementById('rebRate').textContent = `${rebRate}%`;
-    document.getElementById('tovRate').textContent = tovRate !== '-' ? `${tovRate}%` : '-';
+        // Calculate USG% locally (simplified - uses player stats only)
+        let usgPct = null;
+        const playerPoss = fga + FTA_FACTOR * fta + tov;
+        if (playerPoss > 0 && mp > 0) {
+            // Simplified USG% estimate without team totals
+            usgPct = Math.min(45, Math.max(5, (playerPoss / mp) * 36 * 0.8));
+        } else if (pts > 0) {
+            usgPct = Math.min(45, Math.max(10, (pts / 35) * 40));
+        }
 
-    document.getElementById('usgBar').style.width = `${(parseFloat(usgPct) / 45) * 100}%`;
-    document.getElementById('astRateBar').style.width = `${(parseFloat(astRate) / 50) * 100}%`;
-    document.getElementById('rebRateBar').style.width = `${(parseFloat(rebRate) / 30) * 100}%`;
-    document.getElementById('tovRateBar').style.width = tovRate !== '-' ? `${(parseFloat(tovRate) / 25) * 100}%` : '0%';
+        // Calculate AST% locally (simplified)
+        const astPct = mp > 0 ? Math.min(50, Math.max(5, (ast / mp) * 36 * 2.5)) : null;
+
+        // Calculate REB% locally (simplified)
+        const rebPct = mp > 0 ? Math.min(30, Math.max(3, (trb / mp) * 36 * 1.2)) : null;
+
+        // Calculate TOV% locally (this one is accurate without team stats)
+        let tovPct = null;
+        if (playerPoss > 0) {
+            tovPct = (tov / playerPoss) * 100;
+        }
+
+        usageData = {
+            usg_pct: usgPct ? parseFloat(usgPct.toFixed(1)) : null,
+            ast_pct: astPct ? parseFloat(astPct.toFixed(1)) : null,
+            reb_pct: rebPct ? parseFloat(rebPct.toFixed(1)) : null,
+            tov_pct: tovPct ? parseFloat(tovPct.toFixed(1)) : null
+        };
+        isEstimated = true;
+    }
+
+    // Helper function to format value
+    const formatValue = (val) => val !== null && val !== undefined ? `${val.toFixed(1)}%` : '—';
+
+    // Helper function to calculate bar width percentage based on scale cap
+    const getBarWidth = (val, cap) => {
+        if (val === null || val === undefined) return 0;
+        return Math.min((val / cap) * 100, 100);
+    };
+
+    // Update the UI elements
+    const usgVal = usageData.usg_pct;
+    const astVal = usageData.ast_pct;
+    const rebVal = usageData.reb_pct;
+    const tovVal = usageData.tov_pct;
+
+    document.getElementById('usgPct').textContent = formatValue(usgVal);
+    document.getElementById('astRate').textContent = formatValue(astVal);
+    document.getElementById('rebRate').textContent = formatValue(rebVal);
+    document.getElementById('tovRate').textContent = formatValue(tovVal);
+
+    document.getElementById('usgBar').style.width = `${getBarWidth(usgVal, SCALE_CAPS.usg)}%`;
+    document.getElementById('astRateBar').style.width = `${getBarWidth(astVal, SCALE_CAPS.ast)}%`;
+    document.getElementById('rebRateBar').style.width = `${getBarWidth(rebVal, SCALE_CAPS.reb)}%`;
+    document.getElementById('tovRateBar').style.width = `${getBarWidth(tovVal, SCALE_CAPS.tov)}%`;
+
+    // Add estimated indicator if using fallback data
+    const usageCard = document.querySelector('.usage-grid')?.closest('.profile-card');
+    if (usageCard) {
+        // Remove existing indicator if any
+        const existingIndicator = usageCard.querySelector('.estimated-indicator');
+        if (existingIndicator) existingIndicator.remove();
+
+        if (isEstimated) {
+            const indicator = document.createElement('div');
+            indicator.className = 'estimated-indicator';
+            indicator.textContent = '* Estimated (no on-court splits available)';
+            indicator.title = 'Team totals estimated using full-game data';
+            usageCard.appendChild(indicator);
+        }
+    }
+
+    // Add tooltips to usage items
+    const usageItems = document.querySelectorAll('.usage-item');
+    const tooltipData = [
+        TOOLTIPS.usg,
+        TOOLTIPS.ast,
+        TOOLTIPS.reb,
+        TOOLTIPS.tov
+    ];
+
+    usageItems.forEach((item, idx) => {
+        if (tooltipData[idx]) {
+            item.setAttribute('data-tooltip', `${tooltipData[idx].label}: ${tooltipData[idx].desc}`);
+            item.classList.add('has-tooltip');
+        }
+    });
 }
 
 // Show error state

@@ -2,10 +2,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from generate_team_differentials import generate_team_differentials
 from nba_api.live.nba.endpoints import scoreboard
-from nba_api.stats.endpoints import leaguedashteamstats, leaguestandings, teamgamelog, leaguegamefinder, teamplayerdashboard, boxscoretraditionalv2, playergamelog
+from nba_api.stats.endpoints import leaguedashteamstats, leaguestandings, teamgamelog, leaguegamefinder, teamplayerdashboard, boxscoretraditionalv2, playergamelog, playercareerstats, teamdashboardbygeneralsplits
 from nba_api.stats.static import teams
 from datetime import datetime, timedelta
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 import time
+import json
+import os
+import atexit
 import pandas as pd
 
 app = Flask(__name__)
@@ -15,8 +20,10 @@ CORS(app)  # Enable CORS for all routes
 last_request_time = 0
 MIN_REQUEST_INTERVAL = 1.0  # 1 second between calls to be safe
 TEAM_RANKINGS_TTL = 60 * 30  # 30 minutes
+TEAM_TOTALS_TTL = 60 * 30  # 30 minutes for team totals cache
 DEFAULT_SEASON = "2025-26"
 team_rankings_cache = {}
+team_totals_cache = {}  # Cache for team season totals (usage rates)
 
 def _format_rank(rank):
     if rank is None:
@@ -277,8 +284,8 @@ def get_game_boxscore(game_id):
 @app.route('/standings', methods=['GET'])
 def get_standings():
     try:
-        # Fetch 2024-25 standings
-        standings = leaguestandings.LeagueStandings(season='2024-25')
+        # Fetch current 2025-26 standings
+        standings = leaguestandings.LeagueStandings(season='2025-26')
         data = standings.get_dict()
         
         # Current 'standings.js' expects: { east: [], west: [] }
@@ -794,6 +801,428 @@ def get_player_gamelog(player_id):
         print(f"Error fetching player gamelog: {e}")
         return jsonify({"player_id": player_id, "games": [], "error": str(e)}), 500
 
+# Constants for usage rate calculations
+FTA_FACTOR = 0.44  # Standard NBA free throw possession factor
+
+def _get_team_season_totals(team_id, season):
+    """
+    Fetch team season totals for usage rate calculations.
+    Uses caching to avoid rate limiting.
+    """
+    cache_key = f"{team_id}_{season}"
+    now = time.time()
+    
+    # Check cache first
+    if cache_key in team_totals_cache:
+        cached = team_totals_cache[cache_key]
+        if now - cached['timestamp'] < TEAM_TOTALS_TTL:
+            return cached['data']
+    
+    # Rate limiting
+    global last_request_time
+    if now - last_request_time < MIN_REQUEST_INTERVAL:
+        time.sleep(MIN_REQUEST_INTERVAL - (now - last_request_time))
+    last_request_time = time.time()
+    
+    try:
+        # Fetch team dashboard stats
+        dashboard = teamdashboardbygeneralsplits.TeamDashboardByGeneralSplits(
+            team_id=team_id,
+            season=season,
+            per_mode_detailed='Totals',
+            season_type_all_star='Regular Season'
+        )
+        data = dashboard.get_dict()
+        
+        # Find Overall team stats
+        for rs in data.get('resultSets', []):
+            if rs.get('name') == 'OverallTeamDashboard':
+                headers = rs.get('headers', [])
+                rows = rs.get('rowSet', [])
+                
+                if rows:
+                    row = rows[0]
+                    
+                    def get_idx(col):
+                        try:
+                            return headers.index(col)
+                        except ValueError:
+                            return -1
+                    
+                    totals = {
+                        'team_min': row[get_idx('MIN')] if get_idx('MIN') >= 0 else 0,
+                        'team_fga': row[get_idx('FGA')] if get_idx('FGA') >= 0 else 0,
+                        'team_fta': row[get_idx('FTA')] if get_idx('FTA') >= 0 else 0,
+                        'team_tov': row[get_idx('TOV')] if get_idx('TOV') >= 0 else 0,
+                        'team_fgm': row[get_idx('FGM')] if get_idx('FGM') >= 0 else 0,
+                        'team_reb': row[get_idx('REB')] if get_idx('REB') >= 0 else 0,
+                        'team_oreb': row[get_idx('OREB')] if get_idx('OREB') >= 0 else 0,
+                        'team_dreb': row[get_idx('DREB')] if get_idx('DREB') >= 0 else 0,
+                        'games_played': row[get_idx('GP')] if get_idx('GP') >= 0 else 0
+                    }
+                    
+                    # Cache the result
+                    team_totals_cache[cache_key] = {'timestamp': now, 'data': totals}
+                    return totals
+        
+        return None
+    except Exception as e:
+        print(f"Error fetching team totals for {team_id}: {e}")
+        return None
+
+def _get_player_season_totals(player_id, season):
+    """
+    Fetch player season totals for usage rate calculations.
+    """
+    global last_request_time
+    now = time.time()
+    if now - last_request_time < MIN_REQUEST_INTERVAL:
+        time.sleep(MIN_REQUEST_INTERVAL - (now - last_request_time))
+    last_request_time = time.time()
+    
+    try:
+        career = playercareerstats.PlayerCareerStats(player_id=player_id, per_mode36='Totals')
+        data = career.get_dict()
+        
+        # Find current season stats
+        for rs in data.get('resultSets', []):
+            if rs.get('name') == 'SeasonTotalsRegularSeason':
+                headers = rs.get('headers', [])
+                rows = rs.get('rowSet', [])
+                
+                def get_idx(col):
+                    try:
+                        return headers.index(col)
+                    except ValueError:
+                        return -1
+                
+                season_idx = get_idx('SEASON_ID')
+                team_id_idx = get_idx('TEAM_ID')
+                
+                # Find the matching season (most recent if not exact match)
+                target_row = None
+                for row in reversed(rows):  # Most recent seasons are at the end
+                    if season_idx >= 0:
+                        row_season = row[season_idx]
+                        # Season format in API is like "2025-26" or "2024-25"
+                        if row_season == season or row_season.replace('-', '-') == season:
+                            target_row = row
+                            break
+                
+                # Fallback to most recent season
+                if not target_row and rows:
+                    target_row = rows[-1]
+                
+                if target_row:
+                    return {
+                        'team_id': target_row[team_id_idx] if team_id_idx >= 0 else None,
+                        'min': target_row[get_idx('MIN')] if get_idx('MIN') >= 0 else 0,
+                        'fga': target_row[get_idx('FGA')] if get_idx('FGA') >= 0 else 0,
+                        'fta': target_row[get_idx('FTA')] if get_idx('FTA') >= 0 else 0,
+                        'tov': target_row[get_idx('TOV')] if get_idx('TOV') >= 0 else 0,
+                        'ast': target_row[get_idx('AST')] if get_idx('AST') >= 0 else 0,
+                        'reb': target_row[get_idx('REB')] if get_idx('REB') >= 0 else 0,
+                        'fgm': target_row[get_idx('FGM')] if get_idx('FGM') >= 0 else 0,
+                        'gp': target_row[get_idx('GP')] if get_idx('GP') >= 0 else 0
+                    }
+        
+        return None
+    except Exception as e:
+        print(f"Error fetching player season totals for {player_id}: {e}")
+        return None
+
+def _calculate_usage_rates(player_stats, team_stats):
+    """
+    Calculate NBA-standard usage rates.
+    Returns dict with usg_pct, ast_pct, reb_pct, tov_pct (all as percentages 0-100).
+    """
+    result = {
+        'usg_pct': None,
+        'ast_pct': None,
+        'reb_pct': None,
+        'tov_pct': None
+    }
+    
+    if not player_stats or not team_stats:
+        return result
+    
+    # Player stats
+    mp = float(player_stats.get('min', 0) or 0)
+    fga = float(player_stats.get('fga', 0) or 0)
+    fta = float(player_stats.get('fta', 0) or 0)
+    tov = float(player_stats.get('tov', 0) or 0)
+    ast = float(player_stats.get('ast', 0) or 0)
+    reb = float(player_stats.get('reb', 0) or 0)
+    fgm = float(player_stats.get('fgm', 0) or 0)
+    
+    # Team stats
+    tm = float(team_stats.get('team_min', 0) or 0)
+    tfga = float(team_stats.get('team_fga', 0) or 0)
+    tfta = float(team_stats.get('team_fta', 0) or 0)
+    ttov = float(team_stats.get('team_tov', 0) or 0)
+    tfgm = float(team_stats.get('team_fgm', 0) or 0)
+    treb = float(team_stats.get('team_reb', 0) or 0)
+    
+    # Estimate opponent rebounds as ~44% of total available rebounds (league average)
+    # This is a reasonable approximation when on-court splits aren't available
+    opp_reb = treb * 0.79  # Opponent gets roughly 44/(44+56) of remaining rebounds
+    
+    # Edge case: player didn't play
+    if mp <= 0:
+        return result
+    
+    # Team factor (team minutes / 5 players)
+    team_factor = tm / 5.0 if tm > 0 else 0
+    
+    # USG% = 100 * ((FGA + 0.44*FTA + TOV) * (TM/5)) / (MP * (TFGA + 0.44*TFTA + TTOV))
+    player_possessions = fga + FTA_FACTOR * fta + tov
+    team_possessions = tfga + FTA_FACTOR * tfta + ttov
+    
+    if team_possessions > 0 and mp > 0:
+        usg_denom = mp * team_possessions
+        if usg_denom > 0:
+            usg_pct = 100 * (player_possessions * team_factor) / usg_denom
+            result['usg_pct'] = round(min(max(usg_pct, 0), 100), 1)
+    
+    # AST% = 100 * AST / (((MP / (Tm_MP / 5)) * Tm_FG) - FG)
+    # This is the official Basketball Reference formula
+    if team_factor > 0 and mp > 0:
+        teammate_fgm_while_on_court = ((mp / team_factor) * tfgm) - fgm
+        if teammate_fgm_while_on_court > 0:
+            ast_pct = 100 * ast / teammate_fgm_while_on_court
+            result['ast_pct'] = round(min(max(ast_pct, 0), 100), 1)
+    
+    # REB% = 100 * (REB * (TM/5)) / (MP * (TREB + OPPREB))
+    total_available_reb = treb + opp_reb
+    if total_available_reb > 0 and mp > 0:
+        reb_denom = mp * total_available_reb
+        if reb_denom > 0:
+            reb_pct = 100 * (reb * team_factor) / reb_denom
+            result['reb_pct'] = round(min(max(reb_pct, 0), 100), 1)
+    
+    # TOV% = 100 * TOV / (FGA + 0.44*FTA + TOV) - player only, no team stats needed
+    if player_possessions > 0:
+        tov_pct = 100 * tov / player_possessions
+        result['tov_pct'] = round(min(max(tov_pct, 0), 100), 1)
+    
+    return result
+
+@app.route('/players/<int:player_id>/usage-rates', methods=['GET'])
+def get_player_usage_rates(player_id):
+    """
+    Get usage rates (USG%, AST%, REB%, TOV%) for a player.
+    Uses NBA-standard formulas with season totals.
+    """
+    try:
+        season = request.args.get('season', DEFAULT_SEASON)
+        
+        # Fetch player season totals
+        player_stats = _get_player_season_totals(player_id, season)
+        
+        if not player_stats:
+            return jsonify({
+                "player_id": player_id,
+                "error": "Player stats not found",
+                "usg_pct": None,
+                "ast_pct": None,
+                "reb_pct": None,
+                "tov_pct": None,
+                "data_source": "none",
+                "estimated": True
+            }), 404
+        
+        # Fetch team season totals
+        team_id = player_stats.get('team_id')
+        team_stats = None
+        data_source = "season_totals"
+        estimated = False
+        
+        if team_id:
+            team_stats = _get_team_season_totals(team_id, season)
+        
+        if not team_stats:
+            # Fallback: estimate team totals from player stats
+            # Use league average estimates
+            gp = player_stats.get('gp', 1) or 1
+            team_stats = {
+                'team_min': 240 * gp,  # 48 min * 5 players * games
+                'team_fga': 88 * gp,   # League avg ~88 FGA/game
+                'team_fta': 22 * gp,   # League avg ~22 FTA/game
+                'team_tov': 14 * gp,   # League avg ~14 TOV/game
+                'team_fgm': 41 * gp,   # League avg ~41 FGM/game
+                'team_reb': 44 * gp    # League avg ~44 REB/game
+            }
+            data_source = "estimated"
+            estimated = True
+        
+        # Calculate usage rates
+        usage_rates = _calculate_usage_rates(player_stats, team_stats)
+        
+        return jsonify({
+            "player_id": player_id,
+            "season": season,
+            "usg_pct": usage_rates['usg_pct'],
+            "ast_pct": usage_rates['ast_pct'],
+            "reb_pct": usage_rates['reb_pct'],
+            "tov_pct": usage_rates['tov_pct'],
+            "data_source": data_source,
+            "estimated": estimated,
+            "player_stats": {
+                "min": player_stats.get('min'),
+                "fga": player_stats.get('fga'),
+                "fta": player_stats.get('fta'),
+                "tov": player_stats.get('tov'),
+                "ast": player_stats.get('ast'),
+                "reb": player_stats.get('reb'),
+                "fgm": player_stats.get('fgm')
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error calculating usage rates for player {player_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "player_id": player_id,
+            "error": str(e),
+            "usg_pct": None,
+            "ast_pct": None,
+            "reb_pct": None,
+            "tov_pct": None,
+            "data_source": "error",
+            "estimated": True
+        }), 500
+
+
+# =============================================================================
+# SCHEDULED DATA REFRESH
+# =============================================================================
+
+# Path to static data files (relative to this script)
+STATIC_DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'resources', 'static', 'data')
+
+def refresh_standings_data():
+    """
+    Fetch current standings from NBA API and update the static JSON file.
+    This runs on startup and is scheduled for midnight daily.
+    """
+    print(f"[{datetime.now()}] Starting standings data refresh...")
+    
+    try:
+        # Rate limiting
+        global last_request_time
+        now = time.time()
+        if now - last_request_time < MIN_REQUEST_INTERVAL:
+            time.sleep(MIN_REQUEST_INTERVAL - (now - last_request_time))
+        last_request_time = time.time()
+        
+        # Fetch current standings
+        standings = leaguestandings.LeagueStandings(season='2025-26')
+        data = standings.get_dict()
+        
+        east = []
+        west = []
+        
+        headers = data['resultSets'][0]['headers']
+        rows = data['resultSets'][0]['rowSet']
+        
+        def get_val_safe(row, col):
+            try:
+                idx = headers.index(col)
+                return row[idx]
+            except ValueError:
+                return None
+
+        for row in rows:
+            conf = get_val_safe(row, 'Conference')
+            city = get_val_safe(row, 'TeamCity')
+            name = get_val_safe(row, 'TeamName')
+            full_name = f"{city} {name}"
+            abbrev = name[:3].upper()
+            
+            team_obj = {
+                "id": get_val_safe(row, 'TeamID'),
+                "name": name,
+                "fullName": full_name,
+                "abbreviation": abbrev, 
+                "wins": get_val_safe(row, 'WINS'),
+                "losses": get_val_safe(row, 'LOSSES'),
+                "last10": get_val_safe(row, 'L10'),
+                "streak": get_val_safe(row, 'strCurrentStreak') or "N/A"
+            }
+            
+            if conf == 'East':
+                east.append(team_obj)
+            elif conf == 'West':
+                west.append(team_obj)
+        
+        # Sort by wins descending
+        east.sort(key=lambda x: (x['wins'] or 0), reverse=True)
+        west.sort(key=lambda x: (x['wins'] or 0), reverse=True)
+        
+        # Save to static JSON file
+        standings_data = {
+            "east": east,
+            "west": west,
+            "lastUpdated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+        # Ensure directory exists
+        os.makedirs(STATIC_DATA_DIR, exist_ok=True)
+        standings_file = os.path.join(STATIC_DATA_DIR, 'standings.json')
+        
+        with open(standings_file, 'w') as f:
+            json.dump(standings_data, f, indent=2)
+        
+        print(f"[{datetime.now()}] ✓ Standings refreshed successfully! ({len(east)} East, {len(west)} West teams)")
+        return True
+        
+    except Exception as e:
+        print(f"[{datetime.now()}] ✗ Error refreshing standings: {e}")
+        return False
+
+
+def run_startup_refresh():
+    """Run data refresh tasks on startup."""
+    print("\n" + "="*60)
+    print("RUNNING STARTUP DATA REFRESH")
+    print("="*60)
+    
+    # Refresh standings
+    refresh_standings_data()
+    
+    print("="*60 + "\n")
+
+
+# Initialize scheduler for nightly refresh
+scheduler = BackgroundScheduler()
+
+def init_scheduler():
+    """Initialize the background scheduler for nightly data refresh."""
+    # Schedule standings refresh at midnight (00:00) every day
+    scheduler.add_job(
+        func=refresh_standings_data,
+        trigger=CronTrigger(hour=0, minute=0),  # 12:00 AM
+        id='nightly_standings_refresh',
+        name='Nightly standings data refresh',
+        replace_existing=True
+    )
+    
+    scheduler.start()
+    print(f"[{datetime.now()}] ✓ Scheduler initialized - standings will refresh nightly at 12:00 AM")
+    
+    # Shut down scheduler when exiting
+    atexit.register(lambda: scheduler.shutdown())
+
+
 if __name__ == '__main__':
     print("Starting NBA Python Service on port 5001...")
+    
+    # Run startup data refresh
+    run_startup_refresh()
+    
+    # Initialize nightly scheduler
+    init_scheduler()
+    
+    # Start Flask app
     app.run(host='0.0.0.0', port=5001)
