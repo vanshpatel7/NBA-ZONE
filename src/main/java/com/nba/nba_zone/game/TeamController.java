@@ -1,5 +1,6 @@
 package com.nba.nba_zone.game;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -7,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,8 +16,8 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class TeamController {
 
-    private static final String API_BASE_URL = "http://localhost:5001";
-    // private String apiKey;
+    @Value("${python.service.url:http://localhost:5001}")
+    private String apiBaseUrl;
 
     private final RestTemplate restTemplate;
 
@@ -29,50 +28,30 @@ public class TeamController {
     // Get all NBA teams
     @GetMapping
     public ResponseEntity<?> getAllTeams() {
-        String url = API_BASE_URL + "/teams";
-
+        String url = apiBaseUrl + "/teams";
         HttpHeaders headers = new HttpHeaders();
-        // headers.set("Authorization", apiKey);
-
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<Object> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    Object.class);
-
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
             return ResponseEntity.ok(response.getBody());
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to fetch teams: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
+            return handleError("Failed to fetch teams: " + e.getMessage());
         }
     }
 
     // Get team by ID
     @GetMapping("/{teamId}")
     public ResponseEntity<?> getTeamById(@PathVariable Long teamId) {
-        String url = API_BASE_URL + "/teams/" + teamId;
-
+        String url = apiBaseUrl + "/teams/" + teamId;
         HttpHeaders headers = new HttpHeaders();
-        // headers.set("Authorization", apiKey);
-
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<Object> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    Object.class);
-
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
             return ResponseEntity.ok(response.getBody());
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to fetch team: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
+            return handleError("Failed to fetch team: " + e.getMessage());
         }
     }
 
@@ -80,26 +59,15 @@ public class TeamController {
     @GetMapping("/{teamId}/players")
     public ResponseEntity<?> getTeamPlayers(@PathVariable Long teamId,
             @RequestParam(required = false, defaultValue = "2024") Integer season) {
-        // Fetch players with team filter
-        String url = API_BASE_URL + "/players?team_ids[]=" + teamId + "&per_page=25";
-
+        String url = apiBaseUrl + "/players?team_ids[]=" + teamId + "&per_page=25";
         HttpHeaders headers = new HttpHeaders();
-        // headers.set("Authorization", apiKey);
-
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<Object> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    Object.class);
-
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
             return ResponseEntity.ok(response.getBody());
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to fetch team players: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
+            return handleError("Failed to fetch team players: " + e.getMessage());
         }
     }
 
@@ -107,24 +75,30 @@ public class TeamController {
     @GetMapping("/{teamId}/games")
     public ResponseEntity<?> getTeamRecentGames(@PathVariable Long teamId,
             @RequestParam(required = false, defaultValue = "5") Integer limit) {
-        // Call the Python service's team games endpoint
-        String url = API_BASE_URL + "/teams/" + teamId + "/games?limit=" + limit;
-
+        String url = apiBaseUrl + "/teams/" + teamId + "/games?limit=" + limit;
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<Object> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    Object.class);
-
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
             return ResponseEntity.ok(response.getBody());
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to fetch team games: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
+            return handleError("Failed to fetch team games: " + e.getMessage());
+        }
+    }
+
+    // Get team leaders
+    @GetMapping("/{teamId}/leaders")
+    public ResponseEntity<?> getTeamLeaders(@PathVariable Long teamId) {
+        String url = apiBaseUrl + "/teams/" + teamId + "/leaders";
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+            return ResponseEntity.ok(response.getBody());
+        } catch (Exception e) {
+            return handleError("Failed to fetch team leaders: " + e.getMessage());
         }
     }
 
@@ -132,25 +106,21 @@ public class TeamController {
     @GetMapping("/players/{playerId}/stats")
     public ResponseEntity<?> getPlayerSeasonAverages(@PathVariable Long playerId,
             @RequestParam(required = false, defaultValue = "2024") Integer season) {
-        String url = API_BASE_URL + "/season_averages?season=" + season + "&player_ids[]=" + playerId;
-
+        String url = apiBaseUrl + "/season_averages?season=" + season + "&player_ids[]=" + playerId;
         HttpHeaders headers = new HttpHeaders();
-        // headers.set("Authorization", apiKey);
-
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<Object> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    Object.class);
-
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
             return ResponseEntity.ok(response.getBody());
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to fetch player stats: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
+            return handleError("Failed to fetch player stats: " + e.getMessage());
         }
+    }
+
+    private ResponseEntity<?> handleError(String message) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", message);
+        return ResponseEntity.internalServerError().body(error);
     }
 }

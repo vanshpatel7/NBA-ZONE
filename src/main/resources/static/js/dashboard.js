@@ -34,8 +34,66 @@ function initializeDashboard() {
         });
     });
 
+    // Initialize Player of the Week
+    initializePlayerOfTheWeek();
+
     // Load initial games
     loadGames('today');
+}
+
+// Player of the Week Data
+function getPlayerOfTheWeek() {
+    // Mock data - in production this would come from an API
+    return {
+        name: 'Jalen Brunson',
+        firstName: 'Jalen',
+        lastName: 'Brunson',
+        team: 'New York Knicks',
+        teamAbbr: 'NYK',
+        playerId: 1628973, // NBA API player ID for headshot
+        weeklyStats: {
+            ppg: 32.4,
+            rpg: 4.8,
+            apg: 8.2
+        },
+        period: 'Dec 30 - Jan 5, 2026'
+    };
+}
+
+// Initialize Player of the Week popup
+function initializePlayerOfTheWeek() {
+    const potw = getPlayerOfTheWeek();
+
+    // Update player info
+    document.getElementById('potwName').textContent = potw.name;
+    document.getElementById('potwTeam').textContent = potw.team;
+    document.getElementById('potwInitials').textContent =
+        `${potw.firstName.charAt(0)}${potw.lastName.charAt(0)}`;
+
+    // Update weekly stats
+    document.getElementById('potwPpg').textContent = potw.weeklyStats.ppg.toFixed(1);
+    document.getElementById('potwRpg').textContent = potw.weeklyStats.rpg.toFixed(1);
+    document.getElementById('potwApg').textContent = potw.weeklyStats.apg.toFixed(1);
+
+    // Update period
+    document.getElementById('potwPeriod').textContent = potw.period;
+
+    // Try to load player headshot from NBA CDN
+    const headshotUrl = `https://cdn.nba.com/headshots/nba/latest/260x190/${potw.playerId}.png`;
+    const img = document.getElementById('potwImg');
+    const initials = document.getElementById('potwInitials');
+
+    img.onload = function () {
+        img.style.display = 'block';
+        initials.style.display = 'none';
+    };
+
+    img.onerror = function () {
+        img.style.display = 'none';
+        initials.style.display = 'flex';
+    };
+
+    img.src = headshotUrl;
 }
 
 // Mock NBA Games Data (replace with actual API call later)
@@ -997,6 +1055,8 @@ function transformGameData(apiGame) {
         status.includes('half');
     const isFinal = status === 'final';
 
+    const liveStatus = parseLiveStatus(apiGame.status || '', apiGame.time || '');
+
     // Parse time from datetime
     let displayTime = apiGame.time || '';
     if (apiGame.datetime && !isLive && !isFinal) {
@@ -1026,11 +1086,30 @@ function transformGameData(apiGame) {
             record: ''
         },
         status: isLive ? 'live' : (isFinal ? 'final' : 'scheduled'),
-        quarter: isLive ? apiGame.status : (isFinal ? 'Final' : ''),
-        time: displayTime,
+        quarter: isLive ? liveStatus.quarter : (isFinal ? 'Final' : ''),
+        time: isLive ? liveStatus.clock : displayTime,
         postseason: apiGame.postseason || false,
         stats: null
     };
+}
+
+function parseLiveStatus(statusText, timeText) {
+    const combined = `${statusText} ${timeText}`.trim();
+    const fullMatch = combined.match(/\b(Q\d|OT\d?|OT)\b\s+(\d{1,2}:\d{2})/i);
+    if (fullMatch) {
+        return { quarter: fullMatch[1].toUpperCase(), clock: fullMatch[2] };
+    }
+
+    if (/half/i.test(combined)) {
+        return { quarter: 'Halftime', clock: '' };
+    }
+
+    const quarterMatch = combined.match(/\b(Q\d|OT\d?|OT)\b/i);
+    const clockMatch = combined.match(/\b\d{1,2}:\d{2}\b/);
+
+    const quarter = quarterMatch ? quarterMatch[0].toUpperCase() : (statusText || 'Live');
+    const clock = clockMatch ? clockMatch[0] : '';
+    return { quarter, clock };
 }
 
 // Setup auto-refresh for live updates
@@ -1059,13 +1138,14 @@ function createGameCard(game) {
     // Get team logo URLs from NBA CDN
     const awayLogoUrl = getTeamLogoUrl(game.awayTeam.abbreviation);
     const homeLogoUrl = getTeamLogoUrl(game.homeTeam.abbreviation);
+    const liveStatusText = formatLiveStatus(game.quarter, game.time);
 
     return `
         <div class="game-card" data-game-id="${game.id}">
             <div class="game-status">
                 ${isLive ? `
                     <span class="game-live">● LIVE</span>
-                    <span class="game-quarter">${game.quarter} ${game.time}</span>
+                    <span class="game-quarter">${liveStatusText}</span>
                 ` : isFinal ? `
                     <span class="game-final">${game.quarter}</span>
                 ` : `
@@ -1100,6 +1180,28 @@ function createGameCard(game) {
             </div>
         </div>
     `;
+}
+
+function formatLiveStatus(quarter, time) {
+    const q = (quarter || '').trim();
+    const t = (time || '').trim();
+
+    if (/half/i.test(q) || /half/i.test(t)) {
+        return 'Halftime';
+    }
+    if (!t) {
+        return q;
+    }
+    if (!q) {
+        return t;
+    }
+    if (t.includes(q)) {
+        return t;
+    }
+    if (q.includes(t)) {
+        return q;
+    }
+    return `${q} ${t}`.trim();
 }
 
 // NBA Team ID mapping for logo URLs

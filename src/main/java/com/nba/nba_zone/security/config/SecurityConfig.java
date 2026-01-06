@@ -47,6 +47,7 @@ public class SecurityConfig {
                                 "/api/games/**",
                                 "/api/teams/**",
                                 "/api/standings/**",
+                                "/api/players/**",
                                 "/",
                                 "/index.html",
                                 "/login.html",

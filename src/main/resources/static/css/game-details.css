@@ -15,8 +15,8 @@
 
 /* Game Header */
 .game-header {
-    background: rgba(10, 14, 39, 0.9);
-    border: 1px solid rgba(30, 144, 255, 0.2);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 16px;
     padding: 1.5rem 2rem;
     margin-bottom: 2rem;
@@ -31,7 +31,7 @@
 }
 
 .game-broadcast {
-    background: rgba(30, 144, 255, 0.1);
+    background: rgba(43, 135, 255, 0.1);
     color: var(--text-secondary);
     padding: 0.4rem 1rem;
     border-radius: 6px;
@@ -72,14 +72,14 @@
     width: 80px;
     height: 80px;
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(30, 144, 255, 0.2) 0%, rgba(30, 144, 255, 0.05) 100%);
+    background: rgba(43, 135, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
     font-weight: 900;
     color: var(--primary-blue);
-    border: 2px solid rgba(30, 144, 255, 0.3);
+    border: 2px solid rgba(43, 135, 255, 0.3);
 }
 
 .team-info-header {
@@ -110,7 +110,7 @@
 }
 
 .team-streak {
-    color: var(--accent-blue);
+    color: var(--primary-blue);
     font-size: 0.85rem;
     font-weight: 500;
 }
@@ -132,7 +132,7 @@
     display: flex;
     justify-content: center;
     gap: 0.5rem;
-    border-top: 1px solid rgba(30, 144, 255, 0.1);
+    border-top: 1px solid var(--card-border);
     padding-top: 1rem;
 }
 
@@ -148,7 +148,7 @@
 }
 
 .tab-btn:hover {
-    background: rgba(30, 144, 255, 0.1);
+    background: rgba(43, 135, 255, 0.1);
     color: var(--text-primary);
 }
 
@@ -172,8 +172,8 @@
 
 /* Stats Cards */
 .stats-card {
-    background: rgba(10, 14, 39, 0.9);
-    border: 1px solid rgba(30, 144, 255, 0.2);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 16px;
     padding: 1.5rem;
 }
@@ -184,7 +184,7 @@
     align-items: center;
     margin-bottom: 1.25rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.1);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .card-header h3 {
@@ -214,7 +214,7 @@
     align-items: center;
     gap: 1rem;
     padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .leader-row:last-child {
@@ -273,7 +273,7 @@
     align-items: center;
     gap: 1rem;
     padding: 0.85rem 0;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .stat-row:last-child {
@@ -333,7 +333,7 @@
     flex-direction: column;
     gap: 0.2rem;
     padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .injury-item .position {
@@ -383,7 +383,7 @@
     flex-direction: column;
     gap: 0.15rem;
     padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .last5-game:last-child {
@@ -427,7 +427,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .info-item:last-child {
@@ -499,5 +499,370 @@
     .injuries-grid,
     .last5-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ============================
+   LIVE GAME VIEW STYLES
+   ============================ */
+
+.live-game-view {
+    background: var(--bg-dark);
+}
+
+/* Live Scoreboard Header */
+.live-scoreboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    margin-bottom: 1rem;
+}
+
+.live-team {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.live-team.away {
+    justify-content: flex-start;
+}
+
+.live-team.home {
+    justify-content: flex-end;
+}
+
+.live-team-logo {
+    width: 60px;
+    height: 60px;
+    background: rgba(43, 135, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--primary-blue);
+}
+
+.live-team-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.live-score-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.live-scores {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.live-score {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    font-family: 'Satoshi', sans-serif;
+}
+
+.live-score-divider {
+    font-size: 2rem;
+    color: var(--text-secondary);
+    font-weight: 300;
+}
+
+.live-clock-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.live-indicator {
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: pulse-live 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-live {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+.live-clock {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4ade80;
+}
+
+.live-quarter {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* Team Stats Summary Bar */
+.team-stats-bar {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+}
+
+.stats-bar-team {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.team-abbr-label {
+    font-weight: 800;
+    color: var(--primary-blue);
+    font-size: 0.85rem;
+    min-width: 35px;
+}
+
+.stat-pill {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* Live Tabs */
+.live-tabs {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--card-bg);
+    padding: 0.35rem;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    margin-bottom: 1.5rem;
+}
+
+.live-tab {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.live-tab:hover {
+    background: rgba(43, 135, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.live-tab.active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+/* Box Scores Container */
+.box-scores-container {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.box-section {
+    padding: 0;
+}
+
+.box-section-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: capitalize;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--card-border);
+    margin: 0;
+}
+
+.player-rows {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Player Row */
+.player-row {
+    display: grid;
+    grid-template-columns: 50px 1fr repeat(5, 50px);
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--card-border);
+    transition: background 0.2s;
+}
+
+.player-row:hover {
+    background: rgba(43, 135, 255, 0.05);
+}
+
+.player-row:last-child {
+    border-bottom: none;
+}
+
+.player-headshot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, #4a6bc4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-headshot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+}
+
+.player-headshot-initials {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+}
+
+.player-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.player-name-row {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.player-position {
+    font-weight: 600;
+}
+
+.player-stat {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.player-stat.plus-minus {
+    color: #4ade80;
+}
+
+.player-stat.plus-minus.negative {
+    color: #ef4444;
+}
+
+/* Stats Header Row */
+.stats-header-row {
+    display: grid;
+    grid-template-columns: 50px 1fr repeat(5, 50px);
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--card-border);
+}
+
+.stats-header-row span {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.stats-header-row span:first-child,
+.stats-header-row span:nth-child(2) {
+    text-align: left;
+}
+
+/* Responsive Live View */
+@media (max-width: 768px) {
+    .live-scoreboard {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .live-team {
+        justify-content: center !important;
+    }
+
+    .live-score {
+        font-size: 2.5rem;
+    }
+
+    .player-row {
+        grid-template-columns: 40px 1fr repeat(5, 35px);
+    }
+
+    .stats-header-row {
+        grid-template-columns: 40px 1fr repeat(5, 35px);
+    }
+}
+
+@media (max-width: 480px) {
+    .live-tabs {
+        flex-wrap: wrap;
+    }
+
+    .live-tab {
+        flex: 1 1 45%;
+    }
+
+    .player-row {
+        grid-template-columns: 35px 1fr repeat(4, 30px);
+        font-size: 0.75rem;
     }
 }

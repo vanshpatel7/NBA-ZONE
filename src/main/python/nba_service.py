@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from nba_api.live.nba.endpoints import scoreboard
-from nba_api.stats.endpoints import leaguestandings, teamgamelog, leaguegamefinder, teamplayerdashboard
+from nba_api.stats.endpoints import leaguestandings, teamgamelog, leaguegamefinder, teamplayerdashboard, boxscoretraditionalv2, playergamelog
 from nba_api.stats.static import teams
 from datetime import datetime, timedelta
 import time
@@ -87,6 +87,143 @@ def get_games():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"data": [], "error": str(e)}), 500
+
+@app.route('/games/finals', methods=['GET'])
+def get_final_games():
+    try:
+        data = get_live_scoreboard()
+        games_list = []
+        game_date = None
+
+        if 'scoreboard' in data:
+            game_date = data['scoreboard'].get('gameDate')
+            for g in data['scoreboard'].get('games', []):
+                status_text = g.get('gameStatusText', '')
+                if 'Final' in status_text:
+                    games_list.append({
+                        "game_id": g.get('gameId'),
+                        "game_date": game_date,
+                        "status": status_text
+                    })
+
+        return jsonify({"games": games_list, "count": len(games_list), "game_date": game_date})
+    except Exception as e:
+        print(f"Error fetching final games: {e}")
+        return jsonify({"games": [], "error": str(e)}), 500
+
+def _parse_minutes(value):
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str) and ':' in value:
+        parts = value.split(':', 1)
+        try:
+            minutes = int(parts[0])
+            seconds = int(parts[1])
+            return round(minutes + (seconds / 60.0), 2)
+        except ValueError:
+            return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+@app.route('/games/<game_id>/boxscore', methods=['GET'])
+def get_game_boxscore(game_id):
+    try:
+        global last_request_time
+        now = time.time()
+        if now - last_request_time < MIN_REQUEST_INTERVAL:
+            time.sleep(MIN_REQUEST_INTERVAL - (now - last_request_time))
+        last_request_time = time.time()
+
+        box = boxscoretraditionalv2.BoxScoreTraditionalV2(game_id=game_id)
+        data = box.get_dict()
+
+        players = []
+        teams = []
+        for rs in data.get('resultSets', []):
+            if rs.get('name') == 'PlayerStats':
+                headers = rs.get('headers', [])
+                rows = rs.get('rowSet', [])
+
+                def idx(col):
+                    try:
+                        return headers.index(col)
+                    except ValueError:
+                        return -1
+
+                player_id_idx = idx('PLAYER_ID')
+                player_name_idx = idx('PLAYER_NAME')
+                team_id_idx = idx('TEAM_ID')
+                team_abbr_idx = idx('TEAM_ABBREVIATION')
+                min_idx = idx('MIN')
+                pts_idx = idx('PTS')
+                reb_idx = idx('REB')
+                ast_idx = idx('AST')
+                stl_idx = idx('STL')
+                blk_idx = idx('BLK')
+                tov_idx = idx('TO')
+                fgm_idx = idx('FGM')
+                fga_idx = idx('FGA')
+                fg_pct_idx = idx('FG_PCT')
+                fg3m_idx = idx('FG3M')
+                fg3a_idx = idx('FG3A')
+                fg3_pct_idx = idx('FG3_PCT')
+                ftm_idx = idx('FTM')
+                fta_idx = idx('FTA')
+                ft_pct_idx = idx('FT_PCT')
+
+                for row in rows:
+                    players.append({
+                        "player_id": row[player_id_idx] if player_id_idx >= 0 else None,
+                        "player_name": row[player_name_idx] if player_name_idx >= 0 else None,
+                        "team_id": row[team_id_idx] if team_id_idx >= 0 else None,
+                        "team_abbr": row[team_abbr_idx] if team_abbr_idx >= 0 else None,
+                        "min": _parse_minutes(row[min_idx]) if min_idx >= 0 else None,
+                        "pts": row[pts_idx] if pts_idx >= 0 else None,
+                        "reb": row[reb_idx] if reb_idx >= 0 else None,
+                        "ast": row[ast_idx] if ast_idx >= 0 else None,
+                        "stl": row[stl_idx] if stl_idx >= 0 else None,
+                        "blk": row[blk_idx] if blk_idx >= 0 else None,
+                        "tov": row[tov_idx] if tov_idx >= 0 else None,
+                        "fgm": row[fgm_idx] if fgm_idx >= 0 else None,
+                        "fga": row[fga_idx] if fga_idx >= 0 else None,
+                        "fg_pct": row[fg_pct_idx] if fg_pct_idx >= 0 else None,
+                        "fg3m": row[fg3m_idx] if fg3m_idx >= 0 else None,
+                        "fg3a": row[fg3a_idx] if fg3a_idx >= 0 else None,
+                        "fg3_pct": row[fg3_pct_idx] if fg3_pct_idx >= 0 else None,
+                        "ftm": row[ftm_idx] if ftm_idx >= 0 else None,
+                        "fta": row[fta_idx] if fta_idx >= 0 else None,
+                        "ft_pct": row[ft_pct_idx] if ft_pct_idx >= 0 else None
+                    })
+                break
+            if rs.get('name') == 'TeamStats':
+                headers = rs.get('headers', [])
+                rows = rs.get('rowSet', [])
+
+                def idx(col):
+                    try:
+                        return headers.index(col)
+                    except ValueError:
+                        return -1
+
+                team_id_idx = idx('TEAM_ID')
+                team_abbr_idx = idx('TEAM_ABBREVIATION')
+                pts_idx = idx('PTS')
+
+                for row in rows:
+                    teams.append({
+                        "team_id": row[team_id_idx] if team_id_idx >= 0 else None,
+                        "team_abbr": row[team_abbr_idx] if team_abbr_idx >= 0 else None,
+                        "pts": row[pts_idx] if pts_idx >= 0 else None
+                    })
+
+        return jsonify({"game_id": game_id, "players": players, "teams": teams, "count": len(players)})
+    except Exception as e:
+        print(f"Error fetching boxscore for game {game_id}: {e}")
+        return jsonify({"game_id": game_id, "players": [], "error": str(e)}), 500
 
 @app.route('/standings', methods=['GET'])
 def get_standings():
@@ -370,6 +507,67 @@ def get_team_leaders(team_id):
         import traceback
         traceback.print_exc()
         return jsonify({"leaders": [], "roster": [], "error": str(e)}), 500
+
+@app.route('/players/<int:player_id>/gamelog', methods=['GET'])
+def get_player_gamelog(player_id):
+    try:
+        limit = request.args.get('limit', 5, type=int)
+
+        global last_request_time
+        now = time.time()
+        if now - last_request_time < MIN_REQUEST_INTERVAL:
+            time.sleep(MIN_REQUEST_INTERVAL - (now - last_request_time))
+        last_request_time = time.time()
+
+        log = playergamelog.PlayerGameLog(player_id=player_id)
+        data = log.get_dict()
+
+        games = []
+        if 'resultSets' in data and len(data['resultSets']) > 0:
+            headers = data['resultSets'][0]['headers']
+            rows = data['resultSets'][0]['rowSet']
+
+            def idx(col):
+                try:
+                    return headers.index(col)
+                except ValueError:
+                    return -1
+
+            game_id_idx = idx('Game_ID')
+            game_date_idx = idx('GAME_DATE')
+            matchup_idx = idx('MATCHUP')
+            wl_idx = idx('WL')
+            min_idx = idx('MIN')
+            pts_idx = idx('PTS')
+            reb_idx = idx('REB')
+            ast_idx = idx('AST')
+            stl_idx = idx('STL')
+            blk_idx = idx('BLK')
+            fgm_idx = idx('FGM')
+            fga_idx = idx('FGA')
+            fg_pct_idx = idx('FG_PCT')
+
+            for row in rows[:limit]:
+                games.append({
+                    "game_id": row[game_id_idx] if game_id_idx >= 0 else None,
+                    "game_date": row[game_date_idx] if game_date_idx >= 0 else None,
+                    "matchup": row[matchup_idx] if matchup_idx >= 0 else None,
+                    "wl": row[wl_idx] if wl_idx >= 0 else None,
+                    "min": row[min_idx] if min_idx >= 0 else None,
+                    "pts": row[pts_idx] if pts_idx >= 0 else None,
+                    "reb": row[reb_idx] if reb_idx >= 0 else None,
+                    "ast": row[ast_idx] if ast_idx >= 0 else None,
+                    "stl": row[stl_idx] if stl_idx >= 0 else None,
+                    "blk": row[blk_idx] if blk_idx >= 0 else None,
+                    "fgm": row[fgm_idx] if fgm_idx >= 0 else None,
+                    "fga": row[fga_idx] if fga_idx >= 0 else None,
+                    "fg_pct": row[fg_pct_idx] if fg_pct_idx >= 0 else None
+                })
+
+        return jsonify({"player_id": player_id, "games": games, "count": len(games)})
+    except Exception as e:
+        print(f"Error fetching player gamelog: {e}")
+        return jsonify({"player_id": player_id, "games": [], "error": str(e)}), 500
 
 if __name__ == '__main__':
     print("Starting NBA Python Service on port 5001...")

@@ -6,14 +6,16 @@
 }
 
 :root {
-    /* Color Palette - NBA Official Colors */
-    --bg-dark: #0c1325;
-    --bg-darker: #080d1a;
-    --primary-blue: #1D428A;
-    --secondary-blue: #1D428A;
+    /* Color Palette - Modern NBA Theme */
+    --bg-dark: #040415;
+    --bg-darker: #040415;
+    --primary-blue: #2b87ff;
+    --secondary-blue: #2b87ff;
     --accent-red: #C8102E;
+    --card-bg: #2c2c2c;
+    --card-border: rgba(255, 255, 255, 0.08);
     --text-primary: #ffffff;
-    --text-secondary: #a0a8b8;
+    --text-secondary: #9ca3af;
 
     /* Spacing */
     --spacing-xs: 0.5rem;
@@ -24,7 +26,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Satoshi', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--bg-dark);
     color: var(--text-primary);
     overflow-x: hidden;

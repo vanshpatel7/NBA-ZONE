@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Jersey+25&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Jersey+25&family=Satoshi:wght@400;500;600;700;900&display=swap"
         rel="stylesheet">
 </head>
 
@@ -36,7 +37,42 @@
     <!-- Main Dashboard -->
     <main class="dashboard-container">
         <div class="dashboard-header">
-            <h1 class="dashboard-title">Games</h1>
+            <div class="header-left">
+                <h1 class="dashboard-title">Games</h1>
+                <div class="potw-wrapper">
+                    <button class="potw-btn" id="potwBtn">🏆 Player of the Week</button>
+                    <div class="potw-popup" id="potwPopup">
+                        <div class="potw-header">
+                            <span class="potw-badge">🏆 PLAYER OF THE WEEK</span>
+                        </div>
+                        <div class="potw-content">
+                            <div class="potw-headshot" id="potwHeadshot">
+                                <img id="potwImg" src="" alt="Player headshot" style="display: none;">
+                                <div class="potw-initials" id="potwInitials">JB</div>
+                            </div>
+                            <div class="potw-info">
+                                <h3 class="potw-name" id="potwName">Jalen Brunson</h3>
+                                <span class="potw-team" id="potwTeam">New York Knicks</span>
+                            </div>
+                        </div>
+                        <div class="potw-stats">
+                            <div class="potw-stat">
+                                <span class="potw-stat-value" id="potwPpg">28.5</span>
+                                <span class="potw-stat-label">PPG</span>
+                            </div>
+                            <div class="potw-stat">
+                                <span class="potw-stat-value" id="potwRpg">4.2</span>
+                                <span class="potw-stat-label">RPG</span>
+                            </div>
+                            <div class="potw-stat">
+                                <span class="potw-stat-value" id="potwApg">7.8</span>
+                                <span class="potw-stat-label">APG</span>
+                            </div>
+                        </div>
+                        <div class="potw-period" id="potwPeriod">Dec 30 - Jan 5, 2026</div>
+                    </div>
+                </div>
+            </div>
             <div class="date-filter">
                 <button class="date-btn active" data-filter="today">Today</button>
                 <button class="date-btn" data-filter="week">This Week</button>

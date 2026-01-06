@@ -284,7 +284,7 @@ async function showTeamDashboard(team) {
 
     // Fetch LIVE last 5 games directly from Python service (real-time data)
     try {
-        const gamesResponse = await fetch(`http://localhost:5001/teams/${nbaTeamId}/games?limit=5`);
+        const gamesResponse = await fetch(`/api/teams/${nbaTeamId}/games?limit=5`);
         if (gamesResponse.ok) {
             const gamesData = await gamesResponse.json();
             if (gamesData.data && gamesData.data.length > 0) {
@@ -303,7 +303,7 @@ async function showTeamDashboard(team) {
 
     // Fetch LIVE leaders and roster from Python service
     try {
-        const leadersResponse = await fetch(`http://localhost:5001/teams/${nbaTeamId}/leaders`);
+        const leadersResponse = await fetch(`/api/teams/${nbaTeamId}/leaders`);
         if (leadersResponse.ok) {
             const leadersData = await leadersResponse.json();
 

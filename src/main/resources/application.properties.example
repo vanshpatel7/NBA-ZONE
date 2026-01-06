@@ -26,3 +26,10 @@ jwt.expiration=86400000
 # SERVER CONFIGURATION
 # ============================================
 server.port=8080
+
+# ============================================
+# STATS REFRESH JOB
+# ============================================
+stats.refresh.interval-ms=3600000
+python.service.url=http://localhost:5001
+stats.last5.ttl-hours=6

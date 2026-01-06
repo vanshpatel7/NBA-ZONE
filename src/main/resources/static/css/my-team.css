@@ -41,12 +41,13 @@
     justify-content: center;
     gap: 0.5rem;
     margin-bottom: 2rem;
-    background: rgba(30, 144, 255, 0.05);
+    background: var(--card-bg);
     padding: 0.5rem;
     border-radius: 12px;
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
+    border: 1px solid var(--card-border);
 }
 
 .conf-tab {
@@ -62,7 +63,7 @@
 
 .conf-tab:hover {
     color: var(--text-primary);
-    background: rgba(30, 144, 255, 0.1);
+    background: rgba(43, 135, 255, 0.1);
 }
 
 .conf-tab.active {
@@ -78,9 +79,9 @@
 }
 
 .team-card {
-    background: rgba(10, 14, 39, 0.8);
-    border: 1px solid rgba(30, 144, 255, 0.2);
-    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
     padding: 1.25rem;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -93,7 +94,7 @@
 .team-card:hover {
     border-color: var(--primary-blue);
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(30, 144, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(43, 135, 255, 0.2);
 }
 
 .team-card .team-logo {
@@ -116,7 +117,7 @@
     width: 100%;
     height: 100%;
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(29, 66, 138, 0.3) 0%, rgba(29, 66, 138, 0.1) 100%);
+    background: rgba(43, 135, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -160,7 +161,7 @@
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.2);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .my-team-header {
@@ -191,14 +192,14 @@
     width: 100%;
     height: 100%;
     border-radius: 16px;
-    background: linear-gradient(135deg, rgba(29, 66, 138, 0.3) 0%, rgba(29, 66, 138, 0.1) 100%);
+    background: rgba(43, 135, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.8rem;
     font-weight: 900;
     color: var(--primary-blue);
-    border: 2px solid rgba(29, 66, 138, 0.4);
+    border: 2px solid rgba(43, 135, 255, 0.3);
 }
 
 .team-info h1 {
@@ -216,8 +217,8 @@
 
 .btn-change-team {
     padding: 0.75rem 1.5rem;
-    background: rgba(30, 144, 255, 0.1);
-    border: 1px solid rgba(30, 144, 255, 0.3);
+    background: rgba(43, 135, 255, 0.1);
+    border: 1px solid rgba(43, 135, 255, 0.3);
     border-radius: 8px;
     color: var(--primary-blue);
     font-weight: 600;
@@ -226,7 +227,7 @@
 }
 
 .btn-change-team:hover {
-    background: rgba(30, 144, 255, 0.2);
+    background: rgba(43, 135, 255, 0.2);
     border-color: var(--primary-blue);
 }
 
@@ -238,8 +239,8 @@
 }
 
 .dashboard-card {
-    background: rgba(10, 14, 39, 0.9);
-    border: 1px solid rgba(30, 144, 255, 0.2);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 16px;
     padding: 1.5rem;
 }
@@ -250,7 +251,7 @@
     font-weight: 700;
     margin: 0 0 1.25rem 0;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.1);
+    border-bottom: 1px solid var(--card-border);
 }
 
 /* Last Games List */
@@ -265,7 +266,7 @@
     align-items: center;
     gap: 1rem;
     padding: 0.6rem 0;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .game-row:last-child {
@@ -309,7 +310,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.6rem 0;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .leader-item:last-child {
@@ -359,13 +360,13 @@
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.1);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .roster-table td {
     color: var(--text-primary);
     font-size: 0.9rem;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .roster-table tr:last-child td {
@@ -397,8 +398,8 @@
 }
 
 .modal-content {
-    background: rgba(10, 14, 39, 0.98);
-    border: 1px solid rgba(30, 144, 255, 0.3);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 16px;
     padding: 2rem;
     text-align: center;
@@ -425,14 +426,14 @@
     width: 100%;
     height: 100%;
     border-radius: 16px;
-    background: linear-gradient(135deg, rgba(29, 66, 138, 0.3) 0%, rgba(29, 66, 138, 0.1) 100%);
+    background: rgba(43, 135, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.8rem;
     font-weight: 900;
     color: var(--primary-blue);
-    border: 2px solid rgba(29, 66, 138, 0.4);
+    border: 2px solid rgba(43, 135, 255, 0.3);
 }
 
 .modal-content h2 {
@@ -465,7 +466,7 @@
 
 .btn-cancel {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--card-border);
     color: var(--text-secondary);
 }
 
@@ -482,7 +483,7 @@
 }
 
 .btn-confirm:hover {
-    background: #0066ff;
+    background: #3d94ff;
 }
 
 /* Responsive */

@@ -96,6 +96,7 @@ async function loadPlayerData(playerName, playerId) {
 
         // Normalize player data
         const normalizedPlayer = normalizePlayerData(player, playerId);
+        await enrichPlayerHeadshot(normalizedPlayer);
 
         renderPlayer(normalizedPlayer, true);
         loadingState.style.display = 'none';
@@ -114,6 +115,7 @@ function normalizePlayerData(player, fallbackId) {
         name: player.name,
         team: player.team,
         pos: player.pos,
+        headshotUrl: player.headshotUrl || player.headshot_url,
         pts: player.pts,
         ast: player.ast,
         trb: player.trb,
@@ -135,6 +137,24 @@ function normalizePlayerData(player, fallbackId) {
     };
 }
 
+async function enrichPlayerHeadshot(player) {
+    if (player.headshotUrl || player.id || !player.name) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/players/lookup?name=${encodeURIComponent(player.name)}`);
+        if (!response.ok) {
+            return;
+        }
+        const data = await response.json();
+        player.headshotUrl = data.headshotUrl || data.headshot_url || player.headshotUrl;
+        player.id = data.nbaPlayerId || data.nba_player_id || player.id;
+    } catch (error) {
+        console.warn('Failed to lookup player headshot:', error);
+    }
+}
+
 // Render player data to the page
 function renderPlayer(player, isFromApi) {
     // Parse name for initials
@@ -147,7 +167,8 @@ function renderPlayer(player, isFromApi) {
     document.title = `${player.name} | NBA-ZONE`;
 
     // Load player headshot from NBA CDN (if we have an ID)
-    loadPlayerHeadshot(player.id, initials);
+    loadPlayerHeadshot(player.id, initials, player.headshotUrl);
+    renderNickname(player.name);
 
     // Player Header
     document.getElementById('playerName').textContent = player.name;
@@ -185,7 +206,7 @@ function renderPlayer(player, isFromApi) {
     }
 
     // Last 5 Games
-    renderLast5Games(player);
+    loadLast5Games(player);
 
     // Usage Rates
     renderUsageRates(player);
@@ -197,8 +218,136 @@ function renderPlayer(player, isFromApi) {
     }
 }
 
+function renderNickname(playerName) {
+    let nicknameEl = document.getElementById('playerNickname');
+    if (!nicknameEl) {
+        const headerCard = document.querySelector('.player-header-card');
+        const backButton = headerCard?.querySelector('.btn-back');
+        if (headerCard && backButton) {
+            nicknameEl = document.createElement('div');
+            nicknameEl.id = 'playerNickname';
+            nicknameEl.className = 'player-nickname';
+            headerCard.insertBefore(nicknameEl, backButton);
+        }
+    }
+    if (!nicknameEl || !playerName) {
+        return;
+    }
+
+    const nickname = getPlayerNickname(playerName);
+    if (!nickname) {
+        nicknameEl.style.display = 'none';
+        return;
+    }
+
+    nicknameEl.textContent = `"${nickname}"`;
+    nicknameEl.style.display = 'block';
+}
+
+function getPlayerNickname(playerName) {
+    const normalize = (value) => value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, ' ')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, ' ');
+
+    const nicknameMap = {
+        'shai gilgeous alexander': 'Free-throw Merchant',
+        'luka doncic': 'The Don',
+        'lebron james': 'King James',
+        'stephen curry': 'Chef Curry',
+        'kevin durant': 'Slim Reaper',
+        'giannis antetokounmpo': 'Greek Freak',
+        'jayson tatum': 'The Franchise',
+        'joel embiid': 'The Process',
+        'nikola jokic': 'The Joker',
+        'jimmy butler': 'Playoff Jimmy',
+        'anthony edwards': 'Ant-Man'
+    };
+
+    const normalizedName = normalize(playerName);
+    if (nicknameMap[normalizedName]) {
+        return nicknameMap[normalizedName];
+    }
+    if (normalizedName.includes('shai') && normalizedName.includes('gilgeous')) {
+        return 'Free-throw Merchant';
+    }
+    return '';
+}
+
 // Render Last 5 Games with mock data
-function renderLast5Games(player) {
+async function loadLast5Games(player) {
+    const tbody = document.getElementById('last5GamesBody');
+    if (!tbody) {
+        return;
+    }
+
+    if (!player.id) {
+        renderLast5GamesMock(player);
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/players/${player.id}/last5`);
+        if (!response.ok) {
+            renderLast5GamesMock(player);
+            return;
+        }
+        const games = await response.json();
+        if (!Array.isArray(games) || games.length === 0) {
+            renderLast5GamesMock(player);
+            return;
+        }
+        renderLast5GamesFromApi(games);
+    } catch (error) {
+        console.warn('Failed to load last 5 games:', error);
+        renderLast5GamesMock(player);
+    }
+}
+
+function renderLast5GamesFromApi(games) {
+    const tbody = document.getElementById('last5GamesBody');
+    if (!tbody) {
+        return;
+    }
+
+    tbody.innerHTML = games.map(game => {
+        const gameDate = game.gameDate ? new Date(game.gameDate) : null;
+        const dateStr = gameDate ? gameDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-';
+        const opponent = game.opponentAbbr || '-';
+        const teamScore = game.teamScore != null ? Math.round(game.teamScore) : null;
+        const oppScore = game.opponentScore != null ? Math.round(game.opponentScore) : null;
+        let result = '-';
+        if (teamScore != null && oppScore != null) {
+            result = `${teamScore > oppScore ? 'W' : 'L'} ${teamScore}-${oppScore}`;
+        } else if (game.resultWl) {
+            result = game.resultWl.toUpperCase();
+        }
+
+        const min = game.min != null ? Math.round(game.min) : '-';
+        const pts = game.pts != null ? Math.round(game.pts) : '-';
+        const reb = game.reb != null ? Math.round(game.reb) : '-';
+        const ast = game.ast != null ? Math.round(game.ast) : '-';
+        const fgPct = game.fgPct != null ? `${(game.fgPct * 100).toFixed(1)}%` : '-';
+
+        return `
+            <tr>
+                <td>${dateStr}</td>
+                <td>${opponent}</td>
+                <td class="${result.startsWith('W') ? 'result-win' : 'result-loss'}">${result}</td>
+                <td>${min}</td>
+                <td>${pts}</td>
+                <td>${reb}</td>
+                <td>${ast}</td>
+                <td>${fgPct}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderLast5GamesMock(player) {
     const tbody = document.getElementById('last5GamesBody');
     const mockGames = generateMockGames(player);
 
@@ -297,16 +446,16 @@ function showError() {
 }
 
 // Load player headshot from NBA CDN
-function loadPlayerHeadshot(playerId, initials) {
+function loadPlayerHeadshot(playerId, initials, headshotUrlOverride) {
     const headshotImg = document.getElementById('playerHeadshotImg');
     const fallback = document.getElementById('playerHeadshotFallback');
 
-    if (!playerId || !headshotImg) {
+    if ((!playerId && !headshotUrlOverride) || !headshotImg) {
         if (fallback) fallback.style.display = 'flex';
         return;
     }
 
-    const headshotUrl = `https://cdn.nba.com/headshots/nba/latest/1040x760/${playerId}.png`;
+    const headshotUrl = headshotUrlOverride || `https://cdn.nba.com/headshots/nba/latest/1040x760/${playerId}.png`;
 
     headshotImg.onerror = () => {
         headshotImg.style.display = 'none';

@@ -3,9 +3,10 @@
 .stat-filter {
     display: flex;
     gap: 0.5rem;
-    background: rgba(30, 144, 255, 0.05);
+    background: var(--card-bg);
     padding: 0.5rem;
     border-radius: 12px;
+    border: 1px solid var(--card-border);
 }
 
 .filter-btn {
@@ -21,7 +22,7 @@
 
 .filter-btn:hover {
     color: var(--text-primary);
-    background: rgba(30, 144, 255, 0.1);
+    background: rgba(43, 135, 255, 0.1);
 }
 
 .filter-btn.active {
@@ -30,9 +31,9 @@
 }
 
 .players-section {
-    background: rgba(10, 14, 39, 0.8);
+    background: var(--card-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(30, 144, 255, 0.2);
+    border: 1px solid var(--card-border);
     border-radius: 16px;
     padding: 2rem;
     margin-top: 1rem;
@@ -66,18 +67,18 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 700;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.1);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .stats-table td {
     padding: 1.25rem 1rem;
     color: var(--text-primary);
     font-weight: 500;
-    border-bottom: 1px solid rgba(30, 144, 255, 0.05);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .stats-table tr:hover {
-    background: rgba(30, 144, 255, 0.05);
+    background: rgba(43, 135, 255, 0.05);
 }
 
 .stats-table .rank-col {
@@ -102,7 +103,7 @@
 }
 
 .stats-table .team-badge {
-    background: rgba(30, 144, 255, 0.1);
+    background: rgba(43, 135, 255, 0.1);
     color: var(--primary-blue);
     padding: 0.25rem 0.75rem;
     border-radius: 4px;
