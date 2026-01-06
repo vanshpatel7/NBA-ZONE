@@ -34,6 +34,97 @@ body {
     letter-spacing: 0.05em;
 }
 
+/* Global Search Bar */
+.nav-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-left: 1.5rem;
+}
+
+.nav-search-input {
+    width: 240px;
+    padding: 0.6rem 1rem 0.6rem 2.5rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.nav-search-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(43, 135, 255, 0.15);
+    width: 280px;
+}
+
+.nav-search-icon {
+    position: absolute;
+    left: 0.85rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    pointer-events: none;
+    transition: color 0.3s ease;
+}
+
+.nav-search-input:focus+.nav-search-icon,
+.nav-search:hover .nav-search-icon {
+    color: var(--primary-blue);
+}
+
+.nav-brand-group {
+    display: flex;
+    align-items: center;
+}
+
+/* Rolling Basketball Animation */
+.nav-search::after {
+    content: '🏀';
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%) rotate(0deg);
+    font-size: 1.1rem;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.nav-search:hover::after,
+.nav-search:focus-within::after {
+    opacity: 1;
+    left: calc(100% - 2rem);
+    transform: translateY(-50%) rotate(720deg);
+    animation: basketball-bounce 0.6s ease-in-out 0.5s infinite;
+}
+
+/* Hide the search icon on hover/focus */
+.nav-search:hover .nav-search-icon,
+.nav-search:focus-within .nav-search-icon {
+    opacity: 0;
+}
+
+@keyframes basketball-bounce {
+
+    0%,
+    100% {
+        transform: translateY(-50%) rotate(720deg);
+    }
+
+    50% {
+        transform: translateY(-65%) rotate(740deg);
+    }
+}
+
 .nav-menu {
     display: flex;
     gap: 2rem;
