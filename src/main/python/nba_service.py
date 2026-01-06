@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from generate_team_differentials import generate_team_differentials
 from nba_api.live.nba.endpoints import scoreboard
-from nba_api.stats.endpoints import leaguestandings, teamgamelog, leaguegamefinder, teamplayerdashboard, boxscoretraditionalv2, playergamelog
+from nba_api.stats.endpoints import leaguedashteamstats, leaguestandings, teamgamelog, leaguegamefinder, teamplayerdashboard, boxscoretraditionalv2, playergamelog
 from nba_api.stats.static import teams
 from datetime import datetime, timedelta
 import time
+import pandas as pd
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -12,6 +14,53 @@ CORS(app)  # Enable CORS for all routes
 # Cache / Rate Limiting prevention
 last_request_time = 0
 MIN_REQUEST_INTERVAL = 1.0  # 1 second between calls to be safe
+TEAM_RANKINGS_TTL = 60 * 30  # 30 minutes
+DEFAULT_SEASON = "2025-26"
+team_rankings_cache = {}
+
+def _format_rank(rank):
+    if rank is None:
+        return "-"
+    rank = int(rank)
+    if rank <= 0:
+        return "-"
+    if rank == 1:
+        return "1st"
+    if rank == 2:
+        return "2nd"
+    if rank == 3:
+        return "3rd"
+    return f"{rank}th"
+
+def _pick_column(columns, candidates):
+    for col in candidates:
+        if col in columns:
+            return col
+    return None
+
+def _normalize_team_name(value):
+    if not value:
+        return ""
+    return str(value).strip().lower().replace(".", "")
+
+def _build_team_abbr_map():
+    mapping = {}
+    for team in teams.get_teams():
+        full_name = team.get("full_name")
+        abbr = team.get("abbreviation")
+        if full_name and abbr:
+            mapping[_normalize_team_name(full_name)] = abbr
+    return mapping
+
+def _extract_team_stats_frame(stats):
+    frames = stats.get_data_frames()
+    if not frames:
+        return pd.DataFrame()
+    for frame in frames:
+        cols = set(frame.columns)
+        if 'TEAM_ABBREVIATION' in cols and ('PTS' in cols or 'PTS_PG' in cols):
+            return frame
+    return frames[0]
 
 def get_live_scoreboard():
     global last_request_time
@@ -507,6 +556,182 @@ def get_team_leaders(team_id):
         import traceback
         traceback.print_exc()
         return jsonify({"leaders": [], "roster": [], "error": str(e)}), 500
+
+def _format_pct(value):
+    if value is None:
+        return 0.0
+    if value <= 1.1:
+        return round(value * 100, 1)
+    return round(value, 1)
+
+def _get_numeric(source, col, default=0.0):
+    if not col:
+        return default
+    value = source.get(col) if isinstance(source, dict) else source[col]
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+def _build_team_rankings(season):
+    name_to_abbr = _build_team_abbr_map()
+    base_stats = leaguedashteamstats.LeagueDashTeamStats(
+        season=season,
+        per_mode_detailed='PerGame',
+        measure_type_detailed_defense='Base',
+        season_type_all_star='Regular Season',
+        league_id_nullable='00'
+    )
+    opp_stats = leaguedashteamstats.LeagueDashTeamStats(
+        season=season,
+        per_mode_detailed='PerGame',
+        measure_type_detailed_defense='Opponent',
+        season_type_all_star='Regular Season',
+        league_id_nullable='00'
+    )
+
+    df_base = _extract_team_stats_frame(base_stats)
+    df_opp = _extract_team_stats_frame(opp_stats)
+
+    base_cols = df_base.columns
+    opp_cols = df_opp.columns
+
+    team_id_col = _pick_column(base_cols, ['TEAM_ID'])
+    team_abbr_col = _pick_column(base_cols, ['TEAM_ABBREVIATION'])
+    team_name_col = _pick_column(base_cols, ['TEAM_NAME'])
+    wins_col = _pick_column(base_cols, ['W'])
+    losses_col = _pick_column(base_cols, ['L'])
+
+    pts_col = _pick_column(base_cols, ['PTS', 'PTS_PG'])
+    fg_pct_col = _pick_column(base_cols, ['FG_PCT'])
+    fg3_pct_col = _pick_column(base_cols, ['FG3_PCT'])
+    ft_pct_col = _pick_column(base_cols, ['FT_PCT'])
+    ast_col = _pick_column(base_cols, ['AST'])
+    tov_col = _pick_column(base_cols, ['TOV'])
+    blk_col = _pick_column(base_cols, ['BLK'])
+    stl_col = _pick_column(base_cols, ['STL'])
+    reb_col = _pick_column(base_cols, ['REB'])
+
+    opp_team_id_col = _pick_column(opp_cols, ['TEAM_ID'])
+    opp_team_abbr_col = _pick_column(opp_cols, ['TEAM_ABBREVIATION'])
+    opp_pts_col = _pick_column(opp_cols, ['OPP_PTS', 'PTS', 'PTS_PG'])
+    opp_fg_pct_col = _pick_column(opp_cols, ['OPP_FG_PCT', 'FG_PCT'])
+    opp_fg3_pct_col = _pick_column(opp_cols, ['OPP_FG3_PCT', 'FG3_PCT'])
+
+    if not all([pts_col, fg_pct_col, fg3_pct_col, ft_pct_col, ast_col, tov_col, blk_col, stl_col, reb_col]):
+        raise ValueError(f"Missing required base stat columns from NBA stats response. Columns: {list(base_cols)}")
+    if not all([opp_pts_col, opp_fg_pct_col, opp_fg3_pct_col]):
+        raise ValueError(f"Missing required opponent stat columns from NBA stats response. Columns: {list(opp_cols)}")
+
+    df_base['PTS_RANK'] = df_base[pts_col].rank(ascending=False, method='min').astype(int)
+    df_base['FG_PCT_RANK'] = df_base[fg_pct_col].rank(ascending=False, method='min').astype(int)
+    df_base['FG3_PCT_RANK'] = df_base[fg3_pct_col].rank(ascending=False, method='min').astype(int)
+    df_base['FT_PCT_RANK'] = df_base[ft_pct_col].rank(ascending=False, method='min').astype(int)
+    df_base['AST_RANK'] = df_base[ast_col].rank(ascending=False, method='min').astype(int)
+    df_base['TOV_RANK'] = df_base[tov_col].rank(ascending=True, method='min').astype(int)
+    df_base['BLK_RANK'] = df_base[blk_col].rank(ascending=False, method='min').astype(int)
+    df_base['STL_RANK'] = df_base[stl_col].rank(ascending=False, method='min').astype(int)
+    df_base['REB_RANK'] = df_base[reb_col].rank(ascending=False, method='min').astype(int)
+
+    df_opp['OPP_PTS_RANK'] = df_opp[opp_pts_col].rank(ascending=True, method='min').astype(int)
+    df_opp['OPP_FG_PCT_RANK'] = df_opp[opp_fg_pct_col].rank(ascending=True, method='min').astype(int)
+    df_opp['OPP_FG3_PCT_RANK'] = df_opp[opp_fg3_pct_col].rank(ascending=True, method='min').astype(int)
+
+    opp_by_team_id = {}
+    opp_by_team_abbr = {}
+    if opp_team_id_col:
+        opp_by_team_id = df_opp.set_index(opp_team_id_col).to_dict(orient='index')
+    if opp_team_abbr_col:
+        opp_by_team_abbr = df_opp.set_index(opp_team_abbr_col).to_dict(orient='index')
+
+    teams_data = {}
+    for _, row in df_base.iterrows():
+        team_id = int(row[team_id_col]) if team_id_col and not pd.isna(row[team_id_col]) else None
+        team_name = row[team_name_col] if team_name_col else None
+        if team_abbr_col:
+            team_abbr = row[team_abbr_col]
+        else:
+            team_abbr = name_to_abbr.get(_normalize_team_name(team_name), team_name)
+        opp_row = None
+        if team_id is not None and team_id in opp_by_team_id:
+            opp_row = opp_by_team_id[team_id]
+        elif team_abbr in opp_by_team_abbr:
+            opp_row = opp_by_team_abbr[team_abbr]
+        else:
+            opp_row = {}
+
+        teams_data[team_abbr] = {
+            'teamId': team_id,
+            'teamName': team_name if team_name else team_abbr,
+            'teamAbbr': team_abbr,
+            'wins': int(row[wins_col]) if wins_col else 0,
+            'losses': int(row[losses_col]) if losses_col else 0,
+            'offense': {
+                'ppg': round(_get_numeric(row, pts_col), 1),
+                'ppgRank': _format_rank(row['PTS_RANK']),
+                'fgPct': _format_pct(_get_numeric(row, fg_pct_col)),
+                'fgPctRank': _format_rank(row['FG_PCT_RANK']),
+                'fg3Pct': _format_pct(_get_numeric(row, fg3_pct_col)),
+                'fg3PctRank': _format_rank(row['FG3_PCT_RANK']),
+                'ftPct': _format_pct(_get_numeric(row, ft_pct_col)),
+                'ftPctRank': _format_rank(row['FT_PCT_RANK']),
+                'ast': round(_get_numeric(row, ast_col), 1),
+                'astRank': _format_rank(row['AST_RANK']),
+                'to': round(_get_numeric(row, tov_col), 1),
+                'toRank': _format_rank(row['TOV_RANK'])
+            },
+            'defense': {
+                'oppg': round(_get_numeric(opp_row, opp_pts_col), 1),
+                'oppgRank': _format_rank(opp_row.get('OPP_PTS_RANK', 0)),
+                'ofgPct': _format_pct(_get_numeric(opp_row, opp_fg_pct_col)),
+                'ofgPctRank': _format_rank(opp_row.get('OPP_FG_PCT_RANK', 0)),
+                'o3fgPct': _format_pct(_get_numeric(opp_row, opp_fg3_pct_col)),
+                'o3fgPctRank': _format_rank(opp_row.get('OPP_FG3_PCT_RANK', 0)),
+                'blk': round(_get_numeric(row, blk_col), 1),
+                'blkRank': _format_rank(row['BLK_RANK']),
+                'stl': round(_get_numeric(row, stl_col), 1),
+                'stlRank': _format_rank(row['STL_RANK']),
+                'reb': round(_get_numeric(row, reb_col), 1),
+                'rebRank': _format_rank(row['REB_RANK'])
+            }
+        }
+
+    return {
+        'lastUpdated': datetime.utcnow().isoformat() + 'Z',
+        'season': season,
+        'teams': teams_data
+    }
+
+@app.route('/team-rankings', methods=['GET'])
+def get_team_rankings():
+    season = request.args.get('season', DEFAULT_SEASON)
+    now = time.time()
+    cached = team_rankings_cache.get(season)
+    if cached and now - cached['timestamp'] < TEAM_RANKINGS_TTL:
+        return jsonify(cached['data'])
+
+    try:
+        data = _build_team_rankings(season)
+        team_rankings_cache[season] = {"timestamp": now, "data": data}
+        return jsonify(data)
+    except Exception as e:
+        print(f"Error fetching team rankings: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"teams": {}, "error": str(e)}), 500
+
+@app.route('/team-differentials/refresh', methods=['POST'])
+def refresh_team_differentials():
+    try:
+        output = generate_team_differentials()
+        return jsonify({"status": "ok", "output": output})
+    except Exception as e:
+        print(f"Error refreshing team differentials: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 @app.route('/players/<int:player_id>/gamelog', methods=['GET'])
 def get_player_gamelog(player_id):

@@ -76,6 +76,104 @@
                 <button class="btn-change-team" id="changeTeamBtn">Change Team</button>
             </div>
 
+            <!-- Season Stats Overview -->
+            <div class="season-stats-section">
+                <div class="season-header">
+                    <span class="season-label" id="seasonLabel">2025-26</span>
+                    <button class="compare-btn">Compare ▸</button>
+                </div>
+
+                <!-- Offense Stats Card -->
+                <div class="stats-category-card">
+                    <h4 class="stats-category-title">Offense</h4>
+                    <div class="stats-row" id="offenseStats">
+                        <div class="stat-item">
+                            <span class="stat-label">PPG</span>
+                            <span class="stat-value" id="off-ppg">118.8</span>
+                            <span class="stat-rank" id="off-ppg-rank">11th</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FG%</span>
+                            <span class="stat-value" id="off-fg">48.2</span>
+                            <span class="stat-rank highlight" id="off-fg-rank">6th</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">3FG%</span>
+                            <span class="stat-value" id="off-3fg">35.5</span>
+                            <span class="stat-rank" id="off-3fg-rank">17th</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FT%</span>
+                            <span class="stat-value" id="off-ft">75.2</span>
+                            <span class="stat-rank" id="off-ft-rank">29th</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">AST</span>
+                            <span class="stat-value" id="off-ast">26.6</span>
+                            <span class="stat-rank" id="off-ast-rank">11th</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">TO</span>
+                            <span class="stat-value" id="off-to">15.0</span>
+                            <span class="stat-rank" id="off-to-rank">26th</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Defense Stats Card -->
+                <div class="stats-category-card">
+                    <h4 class="stats-category-title">Defense</h4>
+                    <div class="stats-row" id="defenseStats">
+                        <div class="stat-item">
+                            <span class="stat-label">OPPG</span>
+                            <span class="stat-value" id="def-oppg">112.1</span>
+                            <span class="stat-rank" id="def-oppg-rank">4th</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">OFG%</span>
+                            <span class="stat-value" id="def-ofg">44.4</span>
+                            <span class="stat-rank trophy" id="def-ofg-rank">2nd</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">O3FG%</span>
+                            <span class="stat-value" id="def-o3fg">35.2</span>
+                            <span class="stat-rank" id="def-o3fg-rank">8th</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">BLK</span>
+                            <span class="stat-value" id="def-blk">6.4</span>
+                            <span class="stat-rank trophy" id="def-blk-rank">1st</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">STL</span>
+                            <span class="stat-value" id="def-stl">10.2</span>
+                            <span class="stat-rank trophy" id="def-stl-rank">3rd</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">REB</span>
+                            <span class="stat-value" id="def-reb">46.3</span>
+                            <span class="stat-rank trophy" id="def-reb-rank">3rd</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Differentials Chart -->
+            <div class="differentials-section">
+                <div class="diff-header">
+                    <div class="diff-title-block">
+                        <h3 class="section-title">Recent differentials</h3>
+                        <span class="diff-title-sub">Latest</span>
+                    </div>
+                    <div class="diff-labels">
+                        <span class="diff-label">Oldest</span>
+                    </div>
+                </div>
+                <div class="differentials-chart" id="differentialsChart">
+                    <p class="loading-text">Loading differentials...</p>
+                </div>
+            </div>
+
             <!-- Stats Grid -->
             <div class="stats-dashboard-grid">
 

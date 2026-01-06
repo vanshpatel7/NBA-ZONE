@@ -41,3 +41,7 @@ src/main/resources/application.properties
 .venv/
 __pycache__/
 *.pyc
+
+# Generated stats data
+src/main/resources/static/data/team_rankings.json
+src/main/resources/static/data/team_differentials.json

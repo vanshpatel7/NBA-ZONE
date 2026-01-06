@@ -282,6 +282,10 @@ async function showTeamDashboard(team) {
     // Use the NBA official team ID for API calls
     const nbaTeamId = NBA_TEAM_IDS[team.abbreviation];
 
+    // Load team rankings (offense/defense stats)
+    loadTeamRankings(team.abbreviation);
+    loadTeamDifferentials(team.abbreviation);
+
     // Fetch LIVE last 5 games directly from Python service (real-time data)
     try {
         const gamesResponse = await fetch(`/api/teams/${nbaTeamId}/games?limit=5`);
@@ -343,6 +347,56 @@ async function showTeamDashboard(team) {
             updateLeadersFromMock(mockStats.leaders);
             updateRosterFromMock(mockStats.roster);
         }
+    }
+}
+
+async function loadTeamDifferentials(teamAbbr) {
+    const chart = document.getElementById('differentialsChart');
+    if (!chart) return;
+    chart.innerHTML = '<p class="loading-text">Loading differentials...</p>';
+
+    try {
+        const response = await fetch('/data/team_differentials.json');
+        if (!response.ok) throw new Error('Failed to load team differentials');
+
+        const data = await response.json();
+        const teamData = data.teams?.[teamAbbr];
+        const games = teamData?.games || [];
+
+        if (!games.length) {
+            chart.innerHTML = '<p class="loading-text">No recent differentials available.</p>';
+            return;
+        }
+
+        const maxBarHeight = 95;
+        const maxAbs = games.reduce((max, game) => {
+            const value = Math.abs(Number(game.diff) || 0);
+            return value > max ? value : max;
+        }, 1);
+        const scale = maxBarHeight / maxAbs;
+        const bars = games.map(game => {
+            const diff = Number(game.diff);
+            const diffValue = Number.isFinite(diff) ? diff : 0;
+            const height = Math.max(8, Math.min(maxBarHeight, Math.abs(diffValue) * scale));
+            const sign = diffValue > 0 ? '+' : '';
+            const diffLabel = `${sign}${diffValue}`;
+            const barClass = diffValue >= 0 ? 'positive' : 'negative';
+            const opponent = game.opponent || '';
+
+            return `
+                <div class="diff-bar-container">
+                    <div class="diff-bar ${barClass}" style="height: ${height}px;" data-value="${diffLabel}">
+                        <span class="diff-value">${diffLabel}</span>
+                    </div>
+                    <span class="diff-opponent">${opponent}</span>
+                </div>
+            `;
+        }).join('');
+
+        chart.innerHTML = bars;
+    } catch (error) {
+        console.warn('Failed to load team differentials:', error);
+        chart.innerHTML = '<p class="loading-text">No recent differentials available.</p>';
     }
 }
 // Team abbreviation to full name mapping for display
@@ -526,4 +580,92 @@ function updateRosterFromAPI(roster) {
             <td>${player.apg}</td>
         </tr>
     `).join('');
+}
+
+// Load team rankings (offense/defense stats) from NBA.com stats
+async function loadTeamRankings(teamAbbr) {
+    const season = '2025-26';
+    const applyTeamStats = (teamData) => {
+        if (!teamData) return;
+
+        const offense = teamData.offense || {};
+        updateStatElement('off-ppg', offense.ppg, offense.ppgRank);
+        updateStatElement('off-fg', offense.fgPct, offense.fgPctRank);
+        updateStatElement('off-3fg', offense.fg3Pct, offense.fg3PctRank);
+        updateStatElement('off-ft', offense.ftPct, offense.ftPctRank);
+        updateStatElement('off-ast', offense.ast, offense.astRank);
+        updateStatElement('off-to', offense.to, offense.toRank);
+
+        const defense = teamData.defense || {};
+        updateStatElement('def-oppg', defense.oppg, defense.oppgRank);
+        updateStatElement('def-ofg', defense.ofgPct, defense.ofgPctRank);
+        updateStatElement('def-o3fg', defense.o3fgPct, defense.o3fgPctRank);
+        updateStatElement('def-blk', defense.blk, defense.blkRank);
+        updateStatElement('def-stl', defense.stl, defense.stlRank);
+        updateStatElement('def-reb', defense.reb, defense.rebRank);
+    };
+
+    try {
+        const response = await fetch(`/api/teams/rankings?season=${encodeURIComponent(season)}`);
+        if (!response.ok) throw new Error('Failed to load live team rankings');
+
+        const data = await response.json();
+        const seasonLabel = document.getElementById('seasonLabel');
+        if (seasonLabel && data.season) {
+            seasonLabel.textContent = data.season;
+        }
+        const teamData = data.teams[teamAbbr];
+
+        if (!teamData) {
+            console.warn(`No rankings data for team: ${teamAbbr}`);
+            return;
+        }
+
+        applyTeamStats(teamData);
+        console.log(`Loaded NBA.com rankings for ${teamAbbr}: ${teamData.offense?.ppg} PPG (${teamData.offense?.ppgRank})`);
+
+    } catch (error) {
+        console.warn('Failed to load live team rankings, falling back to static data:', error);
+        try {
+            const response = await fetch('/data/team_rankings.json');
+            if (!response.ok) throw new Error('Failed to load fallback team rankings');
+            const data = await response.json();
+            const seasonLabel = document.getElementById('seasonLabel');
+            if (seasonLabel && data.season) {
+                seasonLabel.textContent = data.season;
+            }
+            const teamData = data.teams[teamAbbr];
+            if (!teamData) {
+                console.warn(`No fallback rankings data for team: ${teamAbbr}`);
+                return;
+            }
+            applyTeamStats(teamData);
+        } catch (fallbackError) {
+            console.warn('Failed to load fallback team rankings:', fallbackError);
+        }
+    }
+}
+
+// Helper to update stat element value and rank
+function updateStatElement(baseId, value, rank) {
+    const valueEl = document.getElementById(baseId);
+    const rankEl = document.getElementById(`${baseId}-rank`);
+
+    const displayValue = value === null || value === undefined || Number.isNaN(value) ? '-' : value;
+    const displayRank = rank === null || rank === undefined || rank === '' ? '-' : rank;
+
+    if (valueEl) valueEl.textContent = displayValue;
+    if (rankEl) {
+        rankEl.textContent = displayRank;
+        // Apply styling based on rank
+        rankEl.className = 'stat-rank ' + getRankClass(displayRank);
+    }
+}
+
+// Get CSS class based on rank
+function getRankClass(rank) {
+    const num = parseInt(rank);
+    if (num <= 3) return 'trophy';
+    if (num <= 10) return 'highlight';
+    return '';
 }

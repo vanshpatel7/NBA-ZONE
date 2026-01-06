@@ -48,6 +48,7 @@ public class PlayerStatsRefreshService {
                 return;
             }
 
+            boolean updated = false;
             for (JsonNode gameNode : games) {
                 Long gameId = parseLong(gameNode.path("game_id").asText());
                 String dateText = gameNode.path("game_date").asText();
@@ -60,9 +61,23 @@ public class PlayerStatsRefreshService {
                 }
 
                 processGameStats(gameId, gameDate);
+                updated = true;
+            }
+
+            if (updated) {
+                refreshTeamDifferentials();
             }
         } catch (Exception e) {
             System.err.println("Stats refresh failed: " + e.getMessage());
+        }
+    }
+
+    private void refreshTeamDifferentials() {
+        try {
+            String url = pythonServiceUrl + "/team-differentials/refresh";
+            restTemplate.postForEntity(url, null, String.class);
+        } catch (Exception e) {
+            System.err.println("Team differentials refresh failed: " + e.getMessage());
         }
     }
 

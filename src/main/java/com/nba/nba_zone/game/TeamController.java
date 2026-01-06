@@ -102,6 +102,22 @@ public class TeamController {
         }
     }
 
+    // Get team offense/defense rankings from NBA stats
+    @GetMapping("/rankings")
+    public ResponseEntity<?> getTeamRankings(
+            @RequestParam(required = false, defaultValue = "2025-26") String season) {
+        String url = apiBaseUrl + "/team-rankings?season=" + season;
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+            return ResponseEntity.ok(response.getBody());
+        } catch (Exception e) {
+            return handleError("Failed to fetch team rankings: " + e.getMessage());
+        }
+    }
+
     // Get season averages for a specific player
     @GetMapping("/players/{playerId}/stats")
     public ResponseEntity<?> getPlayerSeasonAverages(@PathVariable Long playerId,
